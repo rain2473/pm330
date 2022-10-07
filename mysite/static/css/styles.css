@@ -2994,10 +2994,11 @@ textarea.form-control-lg {
 
 .btn {
   display: inline-block;
-  font-family: "Merriweather Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: 'NanumBarunGothicBold', "Merriweather Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-size: 1em;
   font-weight: 400;
   line-height: 1.5;
-  color: #212529;
+  color: white;
   text-align: center;
   text-decoration: none;
   vertical-align: middle;
@@ -7282,8 +7283,9 @@ textarea.form-control-lg {
 }
 
 .my-3 {
-  margin-top: 1rem !important;
+  margin-top: 10rem !important;
   margin-bottom: 1rem !important;
+  width: 25% ! important;
 }
 
 .my-4 {
@@ -7371,6 +7373,9 @@ textarea.form-control-lg {
 
 .mb-3 {
   margin-bottom: 1rem !important;
+  font-family: 'NanumBarunGothicBold'; 
+  font-size: 1em; 
+  color: white;
 }
 
 .mb-4 {
