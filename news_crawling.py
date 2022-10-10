@@ -17,8 +17,8 @@ def get_data(stock_ticker, page):
     head_list = []
     date_list = []
     for i in range(len(items)):
-        url = 'https://finance.naver.com' + items[i]['href']
-        res_items = requests.get(url)
+        url2 = 'https://finance.naver.com' + items[i]['href']
+        res_items = requests.get(url2)
         frame_items = BeautifulSoup(res_items.content, 'html.parser')
         head_list.append(frame_items.select_one('strong.c').get_text())
         date_list.append(frame_items.select_one('span.tah').get_text())
