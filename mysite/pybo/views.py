@@ -7,22 +7,20 @@
 #     return HttpResponse("안녕하세요 pybo에 오신것을 환영합니다.")
 
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
 
 def index(request):
     return render(request, 'pybo/index.html')
 
-@login_required(login_url='common:login')
-def Mypage(request):
-    return render(request, 'pybo/Mypage.html')
-
-@login_required(login_url='common:login')
-def PortfolioFeedback(request): 
-    return render(request, 'pybo/PortfolioFeedback.html')
+def Mypage(request): 
+    return render(request, 'pybo/Mypage.html') 
 
 def Login(request): 
     return render(request, 'common/login.html')
-    
+
+def PortfolioFeedback(request): 
+    return render(request, 'pybo/PortfolioFeedback.html')
+
 def KospiMarketMap(request): 
     return render(request, 'pybo/KospiMarketMap.html')
