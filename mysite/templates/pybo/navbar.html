@@ -16,7 +16,7 @@
                 </li>
                 <li class="nav-item">
                     {% if user.is_authenticated %}
-                    <a class="nav-link" href="{% url 'common:logout' %}">{{ user.username }}님 (로그아웃)</a>
+                    <a style="color:black" class="nav-link" href="{% url 'common:logout' %}">{{ user.username }}님 (로그아웃)</a>
                     {% else %}
                     <a style="color:black" class="nav-link" href="{% url 'common:login' %}">Login</a>
                     {% endif %}
