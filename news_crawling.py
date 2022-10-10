@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
-import random
 from pykrx import stock
 
 def get_data(stock_ticker, page):
@@ -55,7 +54,7 @@ for tick in ticker_list:
         # 100개 단위로 백업
         if i % 100 == 0:
             news_data.to_csv(f'./{tick}_{i}page.csv')
-        time.sleep(random.uniform(0, 1))
+        time.sleep(1)
     
     # 종목 뉴스 검색 종료 후 저장
     news_data.to_csv(f'./{tick}.csv')
