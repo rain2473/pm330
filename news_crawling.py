@@ -50,12 +50,16 @@ def get_last(stock_ticker):
 for tick in ticker_list:
     news_data = pd.DataFrame()
     start, end = 1, get_last(tick)
-    for i in range(start, end+1):
-        news_data = pd.concat([news_data, get_data(tick, i)])
-        # 100개 단위로 백업
-        if i % 100 == 0:
-            news_data.to_csv(f'./{tick}_{start}-{i}page.csv')
-        time.sleep(1)
-    
+    print(start, end)
+    now_page = start
+    while now_page <= end:
+        try:
+            news_data = pd.concat([news_data, get_data(tick, now_page)], ignore_index=True)
+            now_page += 1
+            time.sleep(2)
+        except Exception as e:
+            print(e)
+
     # 종목 뉴스 검색 종료 후 저장
     news_data.to_csv(f'./{tick}_{start}-{end}.csv')
+    display(news_data)
