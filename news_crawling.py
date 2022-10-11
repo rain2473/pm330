@@ -49,7 +49,11 @@ def get_last(stock_ticker):
 # 데이터 추출
 for tick in ticker_list:
     news_data = pd.DataFrame()
-    start, end = 1, get_last(tick)
+    try:
+        start, end = 1, get_last(tick)
+    except Exception as e:
+        print(e)
+        start, end = 1, 1
     print(start, end)
     now_page = start
     while now_page <= end:
