@@ -48,6 +48,7 @@
   --bs-warning-rgb: 255, 193, 7;
   --bs-danger-rgb: 220, 53, 69;
   --bs-light-rgb: 248, 249, 250;
+  --bs-light-217: 217, 217, 217;
   --bs-dark-rgb: 33, 37, 41;
   --bs-white-rgb: 255, 255, 255;
   --bs-black-rgb: 0, 0, 0;
@@ -7289,9 +7290,8 @@ textarea.form-control-lg {
 }
 
 .my-3 {
-  margin-top: 1rem !important;
   margin-top: 10rem !important;
-  margin-bottom: 1rem !important;
+  margin-bottom: 10rem !important;
   width: 25% ! important;
 }
 
@@ -7851,7 +7851,7 @@ textarea.form-control-lg {
 
 .bg-light {
   --bs-bg-opacity: 1;
-  background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;
+  background-color: rgba(var(--bs-light-217), var(--bs-bg-opacity)) !important;
 }
 
 .bg-dark {
@@ -11303,11 +11303,21 @@ textarea.form-control-lg {
 html {
   height: 100%;
   scroll-padding-top: calc(4.5rem - 1px);
+  background: linear-gradient(to bottom, rgba(96, 88, 76, 0.7) 0%, rgba(96, 88, 76, 0.7) 150%), url("../assets/img/bg-masthead.jpg");
+  background-position: center;
+  background-repeat: repeat;
+  background-attachment: scroll;
+  background-size: cover;
 }
 
 body {
   width: 100%;
   height: 100%;
+  background: linear-gradient(to bottom, rgba(96, 88, 76, 0.7) 0%, rgba(96, 88, 76, 0.7) 150%), url("../assets/img/bg-masthead.jpg");
+  background-position: center;
+  background-repeat: repeat;
+  background-attachment: scroll;
+  background-size: cover;
 }
 
 .page-section {
@@ -11341,7 +11351,7 @@ hr.divider-light {
 
 #mainNav {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  background-color: #fff;
+  background-color: #d9d9d9;
   transition: background-color 0.2s ease;
 }
 #mainNav .navbar-brand {
@@ -11371,21 +11381,21 @@ hr.divider-light {
     color: rgba(255, 255, 255, 0.7);
   }
   #mainNav .navbar-brand:hover {
-    color: #fff;
+    color: #d9d9d9;
   }
   #mainNav .navbar-nav .nav-item .nav-link {
-    color: rgba(255, 255, 255, 0.7);
+    color: #d9d9d9;
     padding: 0 1rem;
   }
   #mainNav .navbar-nav .nav-item .nav-link:hover {
-    color: #fff;
+    color: #d9d9d9;
   }
   #mainNav .navbar-nav .nav-item:last-child .nav-link {
     padding-right: 0;
   }
   #mainNav.navbar-shrink {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    background-color: #fff;
+    background-color: #d9d9d9;
   }
   #mainNav.navbar-shrink .navbar-brand {
     color: #212529;
@@ -11402,22 +11412,15 @@ hr.divider-light {
 }
 
 header.masthead {
-  padding-top: 10rem;
-  padding-bottom: calc(10rem - 4.5rem);
-  background: linear-gradient(to bottom, rgba(92, 77, 66, 0.8) 0%, rgba(92, 77, 66, 0.8) 100%), url("../assets/img/bg-masthead.jpg");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: scroll;
-  background-size: cover;
+  padding-top: 5.5rem;
+  padding-bottom: 0;
 }
 header.masthead h1, header.masthead .h1 {
   font-size: 2.25rem;
 }
 @media (min-width: 992px) {
   header.masthead {
-    height: 100vh;
-    min-height: 40rem;
-    padding-top: 4.5rem;
+    padding-top: 5.5rem;
     padding-bottom: 0;
   }
   header.masthead p {

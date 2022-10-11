@@ -1,29 +1,31 @@
 <!-- 네비게이션바 -->
 <nav class="navbar navbar-expand-lg navbar-light fixed-top py-3 bg-light" id="mainNav">
     <div class="container px-4 px-lg-5">
-        <a style="color:black" class="navbar-brand" href="{% url 'pybo:index' %}">P.M.3:30</a>
+        <a style="color:#60584C" class="navbar-brand" href="{% url 'pybo:index' %}">
+            <img src="https://postfiles.pstatic.net/MjAyMjEwMTFfOTkg/MDAxNjY1NDkxMjQzMzgw.S2N9vDalmuCTZvGyGIAEJhpo4n5OptVBCV2QVqH66lgg.6Yir3aQ0m2Jj770LQV_ivVji6B6L-ccE3A7_XFKIqhog.PNG.rain2473/%EA%B5%AD%EB%AF%BC%EC%83%81%EC%82%AC_%EB%A1%9C%EA%B3%A0.png?type=w773" width="180" alt="P.M.3:30">
+        </a>
         <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav ms-auto my-2 my-lg-0">
                 <li class="nav-item">
-                    <a style="color:black" class="nav-link" href="{% url 'pybo:KospiMarketMap' %}">Kospi Market-Map</a>
+                    <a style="color:#60584C" class="nav-link" href="{% url 'pybo:KospiMarketMap' %}">Kospi Market-Map</a>
                 </li>
                 <li class="nav-item">
-                    <a style="color:black" class="nav-link" href="{% url 'pybo:PortfolioFeedback' %}">Portfolio Feedback</a>
+                    <a style="color:#60584C" class="nav-link" href="{% url 'pybo:PortfolioFeedback' %}">Portfolio Feedback</a>
                 </li>
                 <li class="nav-item">
-                    <a style="color:black" class="nav-link" href="{% url 'pybo:Mypage' %}">Mypage</a>
+                    <a style="color:#60584C" class="nav-link" href="{% url 'pybo:Mypage' %}">Mypage</a>
                 </li>
                 <li class="nav-item">
                     {% if user.is_authenticated %}
-                    <a style="color:black" class="nav-link" href="{% url 'common:logout' %}">{{ user.username }}님 (로그아웃)</a>
+                    <a style="color:#60584C" class="nav-link" href="{% url 'common:logout' %}">{{ user.username }}님 (로그아웃)</a>
                     {% else %}
-                    <a style="color:black" class="nav-link" href="{% url 'common:login' %}">Login</a>
+                    <a style="color:#60584C" class="nav-link" href="{% url 'common:login' %}">Login</a>
                     {% endif %}
                 </li>
                 <li class="nav-item">
                     {% if not user.is_authenticated %}
-                    <a style="color:black" class="nav-link" href="{% url 'common:signup' %}">Sign up</a>
+                    <a style="color:#60584C" class="nav-link" href="{% url 'common:signup' %}">Sign up</a>
                     {% endif %}
                 </li>
             </ul>
