@@ -378,7 +378,7 @@ button,
 [type=button],
 [type=reset],
 [type=submit] {
-  -webkit-appearance: button;
+  appearance: button;
 }
 button:not(:disabled),
 [type=button]:not(:disabled),
@@ -436,7 +436,7 @@ legend + * {
 
 [type=search] {
   outline-offset: -2px;
-  -webkit-appearance: textfield;
+  appearance: textfield;
 }
 
 /* rtl:raw:
@@ -448,7 +448,7 @@ legend + * {
 }
 */
 ::-webkit-search-decoration {
-  -webkit-appearance: none;
+  appearance: none;
 }
 
 ::-webkit-color-swatch-wrapper {
@@ -465,7 +465,7 @@ legend + * {
 
 ::-webkit-file-upload-button {
   font: inherit;
-  -webkit-appearance: button;
+  appearance: button;
 }
 
 output {
@@ -2486,11 +2486,11 @@ textarea.form-control-lg {
   background-position: center;
   background-size: contain;
   border: 1px solid rgba(0, 0, 0, 0.25);
-  -webkit-appearance: none;
+  appearance: none;
      -moz-appearance: none;
           appearance: none;
-  -webkit-print-color-adjust: exact;
-          color-adjust: exact;
+  print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .form-check-input[type=checkbox] {
   border-radius: 0.25em;
@@ -3034,32 +3034,32 @@ textarea.form-control-lg {
 
 .btn-primary {
   color: #fff;
-  background-color: #f4623a;
-  border-color: #f4623a;
+  background-color: #FFBC00;
+  border-color: #FFBC00;
 }
 .btn-primary:hover {
   color: #fff;
-  background-color: #cf5331;
-  border-color: #c34e2e;
+  background-color: #FFB107;
+  border-color: #FFB107;
 }
 .btn-check:focus + .btn-primary, .btn-primary:focus {
   color: #fff;
-  background-color: #cf5331;
-  border-color: #c34e2e;
+  background-color: #FFB107;
+  border-color: #FFB107;
   box-shadow: 0 0 0 0.25rem rgba(246, 122, 88, 0.5);
 }
 .btn-check:checked + .btn-primary, .btn-check:active + .btn-primary, .btn-primary:active, .btn-primary.active, .show > .btn-primary.dropdown-toggle {
   color: #fff;
-  background-color: #c34e2e;
-  border-color: #b74a2c;
+  background-color: #FFB107;
+  border-color: #FFB107;
 }
 .btn-check:checked + .btn-primary:focus, .btn-check:active + .btn-primary:focus, .btn-primary:active:focus, .btn-primary.active:focus, .show > .btn-primary.dropdown-toggle:focus {
   box-shadow: 0 0 0 0.25rem rgba(246, 122, 88, 0.5);
 }
 .btn-primary:disabled, .btn-primary.disabled {
   color: #fff;
-  background-color: #f4623a;
-  border-color: #f4623a;
+  background-color: #FFB107;
+  border-color: #FFB107;
 }
 
 .btn-secondary {
@@ -7290,9 +7290,12 @@ textarea.form-control-lg {
 }
 
 .my-3 {
-  margin-top: 10rem !important;
-  margin-bottom: 10rem !important;
+  margin-top: 5.5rem !important;
+  margin-bottom: 0rem !important;
+  padding-top: 5.5rem;    
+  padding-bottom: 5.5rem;
   width: 25% ! important;
+  height: 100% !important;
 }
 
 .my-4 {
@@ -11305,7 +11308,7 @@ html {
   scroll-padding-top: calc(4.5rem - 1px);
   background: linear-gradient(to bottom, rgba(96, 88, 76, 0.7) 0%, rgba(96, 88, 76, 0.7) 150%), url("../assets/img/bg-masthead.jpg");
   background-position: center;
-  background-repeat: repeat;
+  background-repeat: no-repeat;
   background-attachment: scroll;
   background-size: cover;
 }
@@ -11315,7 +11318,7 @@ body {
   height: 100%;
   background: linear-gradient(to bottom, rgba(96, 88, 76, 0.7) 0%, rgba(96, 88, 76, 0.7) 150%), url("../assets/img/bg-masthead.jpg");
   background-position: center;
-  background-repeat: repeat;
+  background-repeat: no-repeat;
   background-attachment: scroll;
   background-size: cover;
 }
@@ -11341,7 +11344,7 @@ hr.divider {
   height: 0.2rem;
   max-width: 3.25rem;
   margin: 1.5rem auto;
-  background-color: #f4623a;
+  background-color: #FFBC00;
   opacity: 1;
 }
 

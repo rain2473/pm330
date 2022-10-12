@@ -2,7 +2,7 @@
 <nav class="navbar navbar-expand-lg navbar-light fixed-top py-3 bg-light" id="mainNav">
     <div class="container px-4 px-lg-5">
         <a style="color:#60584C" class="navbar-brand" href="{% url 'pybo:index' %}">
-            <img src="https://postfiles.pstatic.net/MjAyMjEwMTFfOTkg/MDAxNjY1NDkxMjQzMzgw.S2N9vDalmuCTZvGyGIAEJhpo4n5OptVBCV2QVqH66lgg.6Yir3aQ0m2Jj770LQV_ivVji6B6L-ccE3A7_XFKIqhog.PNG.rain2473/%EA%B5%AD%EB%AF%BC%EC%83%81%EC%82%AC_%EB%A1%9C%EA%B3%A0.png?type=w773" width="180" alt="P.M.3:30">
+            <img src="https://postfiles.pstatic.net/MjAyMjEwMTJfMTI1/MDAxNjY1NTQxMTQ0NTk3.lU1WfCvcDMH5vTn91vpC_ql3svvQzSGpw5P-A62Rb1Yg.Kkr33sODvz1jx8lN521XkL5YGUCPw9W6ZUKxsjMNpSYg.PNG.rain2473/%EA%B5%AD%EB%AF%BC%EC%83%81%EC%82%AC_%EC%9B%90%EB%B3%B8.png?type=w773" width="180" alt="P.M.3:30">
         </a>
         <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse" id="navbarResponsive">
@@ -24,7 +24,7 @@
                     {% endif %}
                 </li>
                 <li class="nav-item">
-                    {% if not user.is_authenticated %}
+                    {% if not user.is_authenticated %}  
                     <a style="color:#60584C" class="nav-link" href="{% url 'common:signup' %}">Sign up</a>
                     {% endif %}
                 </li>

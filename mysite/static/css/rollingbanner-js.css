@@ -18,7 +18,7 @@ html, body{
     font-size: .875rem;
     color: #fff;
     letter-spacing: -.075em;
-    background-color: #a00;
+    background-color: #FFBC00;
 }
 .rollingbanner a{
     color: #fff;
@@ -41,7 +41,7 @@ html, body{
     width: 20px;
     height: 100%;
     z-index: 1;
-    background: linear-gradient(to right, rgba(170,0,0,1) 0%, rgba(170,0,0,0.75) 51%, rgba(170,0,0,0) 100%);
+    background: linear-gradient(to right, #FFBC00, #FFBC0077, #FFBC0000);
 }
 .wrap::after{
     content:'';
@@ -51,7 +51,7 @@ html, body{
     width: 20px;
     height: 100%;
     z-index: 1;
-    background: linear-gradient(to right, rgba(170,0,0,0) 0%, rgba(170,0,0,0.75) 51%, rgba(170,0,0,1) 100%);
+    background: linear-gradient(to right, #FFBC00, #FFBC0077, #FFBC0000);
 }
 
 /* 애니메이션하는 요소 */
