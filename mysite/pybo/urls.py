@@ -7,4 +7,5 @@ urlpatterns = [
     path('Mypage/', Mypage, name='Mypage'),
     path('KospiMarketMap', KospiMarketMap, name='KospiMarketMap'),
     path('PortfolioFeedback', PortfolioFeedback, name='PortfolioFeedback'),
+    path('Myportfolio', Myportfolio, name='Myportfolio'),
 ]

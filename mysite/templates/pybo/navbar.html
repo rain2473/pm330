@@ -11,10 +11,13 @@
                     <a style="color:#60584C" class="nav-link" href="{% url 'pybo:KospiMarketMap' %}">Kospi Market-Map</a>
                 </li>
                 <li class="nav-item">
-                    <a style="color:#60584C" class="nav-link" href="{% url 'pybo:PortfolioFeedback' %}">Portfolio Feedback</a>
+                    <a style="color:#60584C" class="nav-link" href="{% url 'pybo:Mypage' %}">Mypage</a>
                 </li>
                 <li class="nav-item">
-                    <a style="color:#60584C" class="nav-link" href="{% url 'pybo:Mypage' %}">Mypage</a>
+                    <a style="color:#60584C" class="nav-link" href="{% url 'pybo:Myportfolio' %}">Myportfolio</a>
+                </li>
+                <li class="nav-item">
+                    <a style="color:#60584C" class="nav-link" href="{% url 'pybo:PortfolioFeedback' %}">Portfolio Feedback</a>
                 </li>
                 <li class="nav-item">
                     {% if user.is_authenticated %}

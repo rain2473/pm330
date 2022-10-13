@@ -16,6 +16,10 @@ def index(request):
 @login_required(login_url='common:login')
 def Mypage(request):
     return render(request, 'pybo/Mypage.html')
+    
+@login_required(login_url='common:login')
+def Myportfolio(request): 
+    return render(request, 'pybo/Myportfolio.html')
 
 @login_required(login_url='common:login')
 def PortfolioFeedback(request): 
