@@ -3035,23 +3035,23 @@ textarea.form-control-lg {
 }
 
 .btn-primary {
-  color: #fff;
+  color: #60584C;
   background-color: #FFBC00;
   border-color: #FFBC00;
 }
 .btn-primary:hover {
-  color: #fff;
+  color: #60584C;
   background-color: #FFB107;
   border-color: #FFB107;
 }
 .btn-check:focus + .btn-primary, .btn-primary:focus {
-  color: #fff;
+  color: #60584C;
   background-color: #FFB107;
   border-color: #FFB107;
   box-shadow: 0 0 0 0.25rem rgba(246, 122, 88, 0.5);
 }
 .btn-check:checked + .btn-primary, .btn-check:active + .btn-primary, .btn-primary:active, .btn-primary.active, .show > .btn-primary.dropdown-toggle {
-  color: #fff;
+  color: #60584C;
   background-color: #FFB107;
   border-color: #FFB107;
 }
@@ -3059,29 +3059,29 @@ textarea.form-control-lg {
   box-shadow: 0 0 0 0.25rem rgba(246, 122, 88, 0.5);
 }
 .btn-primary:disabled, .btn-primary.disabled {
-  color: #fff;
+  color: #60584C;
   background-color: #FFB107;
   border-color: #FFB107;
 }
 
 .btn-secondary {
-  color: #fff;
+  color: #60584C;
   background-color: #6c757d;
   border-color: #6c757d;
 }
 .btn-secondary:hover {
-  color: #fff;
+  color: #60584C;
   background-color: #5c636a;
   border-color: #565e64;
 }
 .btn-check:focus + .btn-secondary, .btn-secondary:focus {
-  color: #fff;
+  color: #60584C;
   background-color: #5c636a;
   border-color: #565e64;
   box-shadow: 0 0 0 0.25rem rgba(130, 138, 145, 0.5);
 }
 .btn-check:checked + .btn-secondary, .btn-check:active + .btn-secondary, .btn-secondary:active, .btn-secondary.active, .show > .btn-secondary.dropdown-toggle {
-  color: #fff;
+  color: #60584C;
   background-color: #565e64;
   border-color: #51585e;
 }
@@ -3089,29 +3089,29 @@ textarea.form-control-lg {
   box-shadow: 0 0 0 0.25rem rgba(130, 138, 145, 0.5);
 }
 .btn-secondary:disabled, .btn-secondary.disabled {
-  color: #fff;
+  color: #60584C;
   background-color: #6c757d;
   border-color: #6c757d;
 }
 
 .btn-success {
-  color: #fff;
+  color: #60584C;
   background-color: #198754;
   border-color: #198754;
 }
 .btn-success:hover {
-  color: #fff;
+  color: #60584C;
   background-color: #157347;
   border-color: #146c43;
 }
 .btn-check:focus + .btn-success, .btn-success:focus {
-  color: #fff;
+  color: #60584C;
   background-color: #157347;
   border-color: #146c43;
   box-shadow: 0 0 0 0.25rem rgba(60, 153, 110, 0.5);
 }
 .btn-check:checked + .btn-success, .btn-check:active + .btn-success, .btn-success:active, .btn-success.active, .show > .btn-success.dropdown-toggle {
-  color: #fff;
+  color: #60584C;
   background-color: #146c43;
   border-color: #13653f;
 }

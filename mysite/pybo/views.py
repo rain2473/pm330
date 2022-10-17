@@ -9,7 +9,7 @@
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-
+from .TreemapMaker import write_treemap_html as create
 def index(request):
     return render(request, 'pybo/index.html')
 
@@ -29,4 +29,5 @@ def Login(request):
     return render(request, 'common/login.html')
 
 def KospiMarketMap(request): 
+    create()
     return render(request, 'pybo/KospiMarketMap.html')
