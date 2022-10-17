@@ -26,7 +26,7 @@
 | \<type\> | Description             |
 |:--------:|:-----------------------:|
 | FEAT     | 새로운 기능 관련               |
-| FIX      | 버그 수정 관련                |
+| FIX      | 버그 및 로직 수정 관련                |
 | DOCS     | 문서 작업 관련                |
 | STYLE    | 코드 의미와는 무관한, 코드 변경사항 관련 |
 | REFACTOR | 코드 리팩토링 관련              |
@@ -45,3 +45,5 @@
 2. [FEAT] create stock search bar <br />: 주식 검색창 기능을 만듦 <br />
 
 3. [RENAME] rename 'apiHandler.py' to 'api_handler.py' <br />: apiHandler.py 파일의 이름을 'api_handler.py'로 변경함 <br />
+
+4. [FIX] modify 'news_crawler.py's logic to operate faster <br />: news_crawler.py 파일의 로직을 더 빠르게 구동되도록 수정함 <br />
