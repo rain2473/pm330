@@ -23,7 +23,7 @@ STOCK_MARKET = 'KOSPI'
 
 
 # Class Declaration
-class Person(): # 클래스의 이름은 대분자로 시작, 가급적 한 음절로 구성, 부득이하게 두음절 이상으로 구성할 경우 Camel Notation(ex: MadGuy)으로 구성
+class Person(): # 클래스의 이름은 대문자로 시작, 가급적 한 음절로 구성, 부득이하게 두음절 이상으로 구성할 경우 Camel Notation(ex: MadGuy)으로 구성
     """
     <클래스에 대한 개괄적인 설명> (~이다. 체)
     사람을 모델링한 클래스이다.
