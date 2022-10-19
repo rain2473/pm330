@@ -25,8 +25,7 @@ from data_manipulator import *
 # Constants
 
 # * * *   Credentials   * * *
-# API_KEY_OPEN_DATA_PORTAL = '<공공데이터 포털 서비스키>'
-API_KEY_OPEN_DATA_PORTAL = 'uZEPxYU1hcKy6To5Hex%2ByxoSPBqrjzpFi9DeHCmI3b%2FovyQR3HbAcBQQG1RtKJpp5vRJ7ChiL%2B4HqCwEsXjoJQ%3D%3D'
+API_KEY_OPEN_DATA_PORTAL = '<공공데이터 포털 서비스키>'
 
 # * * *   Network Configuration   * * *
 INTERVAL_API_CALL = 0.05 # 0.05 Second = 100ms
@@ -898,5 +897,3 @@ def get_market_ohlcv_by_date(short_isin_code:str, start_date:str, end_date:str):
     except et.ParseError:
         print("[ERROR] Parser Error")
         return None    
-
-print(get_market_ohlcv_by_date('238500', '20220925', '20221014'))
