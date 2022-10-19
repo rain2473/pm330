@@ -3,15 +3,16 @@
 # Date    : <2022-10-16>
 
 # Required Modules
-import pandas                                                           as pd
-import numpy                                                            as np
-import plotly.graph_objects                                     as go
-from tkinter                                                             import Tk
-from _tkinter                                                           import TclError
-from selenium                                                           import webdriver
-from selenium.webdriver.common.keys                     import Keys
-from selenium.webdriver.common.action_chains       import ActionChains
-from plotly                                                               import express                        as px
+import pandas                                       as pd
+import numpy                                        as np
+import plotly.graph_objects                         as go
+from tkinter                                        import Tk
+from _tkinter                                       import TclError
+from selenium                                       import webdriver
+from pykrx                                          import stock
+from selenium.webdriver.common.keys                 import Keys
+from selenium.webdriver.common.action_chains        import ActionChains
+from plotly                                         import express         as px
 
 # Function Declaration
 def copy_page():
@@ -22,8 +23,16 @@ def copy_page():
     [Returns]
         없음 
     '''
-    # 크롬 브라우저 지정
-    driver = webdriver.Chrome("templates\pybo\chromedriver.exe")
+    # 속도 향상을 위한 옵션 해제
+    prefs = {'profile.default_content_setting_values': {'cookies' : 2, 'images': 2, 'plugins' : 2, 'popups': 2, 'geolocation': 2, 'notifications' : 2, 'auto_select_certificate': 2, 'fullscreen' : 2, 'mouselock' : 2, 'mixed_script': 2, 'media_stream' : 2, 'media_stream_mic' : 2, 'media_stream_camera': 2, 'protocol_handlers' : 2, 'ppapi_broker' : 2, 'automatic_downloads': 2, 'midi_sysex' : 2, 'push_messaging' : 2, 'ssl_cert_decisions': 2, 'metro_switch_to_desktop' : 2, 'protected_media_identifier': 2, 'app_banner': 2, 'site_engagement' : 2, 'durable_storage' : 2}}   
+    # 크롬 드라이버 옵션 설정
+    webdriver_options = webdriver.ChromeOptions()
+    webdriver_options.add_argument("disable-gpu") 
+    webdriver_options.add_argument("disable-infobars")
+    webdriver_options.add_argument("--disable-extensions")
+    webdriver_options.add_experimental_option('prefs', prefs)
+    # 크롬 드라이버 지정
+    driver = webdriver.Chrome("templates\pybo\chromedriver.exe", options=webdriver_options)
     # url 지정(한경 데이터 센터)
     url = "https://datacenter.hankyung.com/equities-all"
     # url 주소 page 접속
@@ -154,7 +163,7 @@ def make_mktcap_df():
         pandas DataFrame : 종목명, 티커, 시가총액
     '''
     # 임시 list 선언
-    stock_mktcap_df = pd.read_csv("templates\pybo\datas\stock_mktcap_df.csv", encoding='cp949')
+    stock_mktcap_df = pd.read_csv("templates\pybo\datas\stock_mktcap_df.csv", encoding='utf-8')
     return stock_mktcap_df
 
 def make_data():
@@ -219,12 +228,15 @@ def get_html():
         hovertemplate='티커 = %{customdata[1]}<br>현재가 = %{customdata[2]}<br> 등락율(%) = %{customdata[3]}<extra></extra>'
     )
     # 그래프의 layout 지정 - 배경색상 회색
-    fig.update_layout(go.Layout(paper_bgcolor='#d9d9d9'))
+    fig.update_layout(
+        go.Layout(paper_bgcolor='#d9d9d9'),
+        margin={"r":0,"t":0,"l":0,"b":0}
+    )
     # 생성된 그래프를 html로 변환하여 html_str에 저장(문자열)
     html_str = fig.to_html()
     # html의 불필요한 부분을 구현에 필요한 코드로 변환
     html_str = html_str.replace('<html>\n<head><meta charset="utf-8" /></head>\n<body>','{% extends "pybo/base.html" %}\n{% load static %}\n<body id="page-top">\n    {% block content %}\n    <div class="container px-4 px-lg-5 h-100" style="margin-top : 5.5rem; padding-top : 3.5rem">')
-    html_str = html_str.replace('\n</body>\n</html>', '</div>\n    {% endblock content %}\n</body>')
+    html_str = html_str.replace('\n</body>\n</html>', '<img src="https://postfiles.pstatic.net/MjAyMjEwMTdfMTA5/MDAxNjY1OTkyMzk4NzQ3.C3OGTkrIwUZJ0-AkCmIParlPuvBc3sWToTPVZW9Inysg.tWV6v1WpDDBtQ7gBdrg5GVYMRG8SDYx_kklHQvthXokg.PNG.rain2473/%EC%83%89%EC%83%81.png?type=w773" style="float: right;  width:600;" alt="색상표"></div>\n    {% endblock content %}\n</body>')
     # html 코드를 문자열로 반환
     return html_str
 

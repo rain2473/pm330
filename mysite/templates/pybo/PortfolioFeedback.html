@@ -8,10 +8,10 @@
             <h1 class="text-white font-weight-bold">포트폴리오</h1>
             <hr class="divider" />
         </div>
-        <div class="col-lg-8 align-self-baseline">
-            <p class="text-white-75 mb-5">와! 아시는구나!! <p>
-            <p class="text-white-75 mb-5">포트폴리오 즐거운시간되세요!</p>
-            <a class="btn btn-primary btn-xl" href="{% url 'pybo:index' %}">Find Out More</a>
+        <div class="col-lg-8 align-self-baseline" style="width:100%;">
+            {% autoescape off %}
+            {{ lstm_div }}
+            {% endautoescape %}
         </div>
     </div>
 </div>

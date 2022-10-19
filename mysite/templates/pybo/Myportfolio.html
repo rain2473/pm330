@@ -2,16 +2,67 @@
 {% load static %}
 
 {% block content %}
-<div class="container px-4 px-lg-5 h-100" style="margin-top: 5.5rem">
-    <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
-        <div class="col-lg-8 align-self-end">
-            <h1 class="text-white font-weight-bold">나의 포트폴리오</h1>
+<!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+       $("#insert").load("templates\pybo\piechart.html")
+    });
+</script> -->
+<div class="container px-4 px-lg-5 h-100" style="margin-top: 5.5rem; display :flex; max-width: 1520px;">
+    <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center" style="flex : 45">
+        <div class="col-lg-8 align-self-end" style="width:100%">
+            <h1 class="text-white font-weight-bold" style="font-size: 30;">{{ user.username }} 고객님의 포트폴리오</h1>
             <hr class="divider" />
         </div>
-        <div class="col-lg-8 align-self-baseline">
-            <p class="text-white-75 mb-5">와! 아시는구나!! <p>
-            <p class="text-white-75 mb-5">나의 포트폴리오 즐거운시간되세요!</p>
-            <a class="btn btn-primary btn-xl" href="{% url 'pybo:index' %}">Find Out More</a>
+        <div class="col-lg-8 align-self-baseline" style="width:85%;">
+            {% autoescape off %}
+            {{ plot_div }}
+            {% endautoescape %}
+        </div>
+    </div>
+    <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center" style="flex : 25">
+        <div class="col-lg-8 align-self-end" style="width:100%">
+            <h1 class="text-white font-weight-bold">포트폴리오 점수</h1>
+            <hr class="divider" />
+        </div>
+        <div class="col-lg-8 align-self-baseline align-items-center" style="display: flex; width: 60%;">
+            <img src="https://postfiles.pstatic.net/MjAyMjEwMThfMTgx/MDAxNjY2MDkwMTkyNzI1.T51ueSrTXNrFOnLLPy1D9L1Ol6pAb06PcYWwCUeQmkQg.J4pi2-anWlg5URz9-4ocZkXJkEJ8UogyiW8Gz2eiovcg.PNG.rain2473/9_%ED%8C%8C%EB%9E%91.png?type=w773" width="100" height ="100" alt="9">
+            <img src="https://postfiles.pstatic.net/MjAyMjEwMThfMjQ2/MDAxNjY2MDkwMTkyNzAw.qbIQdmWK8EyUUyW5xVXE_LWIvQsJonWl-dIjp2E2s30g.D5hpkBnjPcZcm9fKz5hKwZiFB9iqf49nCE79W9qQ6Ksg.PNG.rain2473/8_%ED%8C%8C%EB%9E%91.png?type=w773" width="100" height ="100" alt="8">
+            <h2 style="font-weight: 100; color: #d9d9d9; font-size: 50px; padding-top: 3.5rem;">점</h2>
+        </div>
+    </div>
+    <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center" style="flex : 30">
+        <div class="col-lg-8 align-self-end" style="width:100%;">
+            <h1 class="text-white font-weight-bold">내 종목 소식</h1>
+            <hr class="divider" />
+        </div>
+        <div class="col-lg-8 align-self-baseline align-items-justify">
+            <table style= "width:100%">
+            <tr class="text-white-75" style="font-size: 25px;" >
+                <td><a href= "https://finance.naver.com/item/news.naver?code=005930" target="_blank" style="text-align: left;float:left; color:#fff; text-decoration-line:none;">삼성전자</a></td>
+                <td><a href="{% url 'pybo:News' %}" style="color:#da1313;text-align: right; float:right;text-decoration-line:none">호재</a></td>
+            </tr>
+            <tr class="text-white-75" style="font-size: 25px;" >
+                <td><a href= "https://finance.naver.com/item/news.naver?code=035720" target="_blank"style="text-align: left;float:left; color:#fff; text-decoration-line:none;">카카오</a></td>
+                <td><a href="{% url 'pybo:News' %}" style="color:#da1313; text-align: right; float:right; text-decoration-line:none">호재</a></td>
+            </tr>
+            <tr class="text-white-75" style="font-size: 25px;" >
+                <td><a href= "https://finance.naver.com/item/news.naver?code=035420" target="_blank"style="text-align: left;float:left; color:#fff; text-decoration-line:none;">네이버</a></td>
+                <td><a href="{% url 'pybo:News' %}" style="color:#da1313; text-align: right; float:right; text-decoration-line:none">호재</a></td>
+            </tr>
+            <tr class="text-white-75" style="font-size: 25px;" >
+                <td><a href= "https://finance.naver.com/item/news.naver?code=005490" target="_blank"style="text-align: left;float:left; color:#fff; text-decoration-line:none;">포스코</a></td>
+                <td><a href="{% url 'pybo:News' %}" style="color:#0f1e8e; text-align: right; float:right; text-decoration-line:none">악재</a></td>
+            </tr>
+            <tr class="text-white-75" style="font-size: 25px;" >
+                <td><a href= "https://finance.naver.com/item/news.naver?code=068270" target="_blank"style="text-align: left;float:left; color:#fff; text-decoration-line:none;">셀트리온</a></td>
+                <td><a href="{% url 'pybo:News' %}" style="color:#0f1e8e; text-align: right; float:right;text-decoration-line:none">악재</a></td>
+            </tr>
+            <tr class="text-white-75" style="font-size: 25px;" >
+                <td><a href= "https://finance.naver.com/item/news.naver?code=326030" target="_blank"style="text-align: left;float:left; color:#fff; text-decoration-line:none;">SK바이오팜</a></td>
+                <td><a href="{% url 'pybo:News' %}" style="color:#0f1e8e; text-align: right; float:right;text-decoration-line:none">악재</a></td>
+            </tr>
+            </table>       
         </div>
     </div>
 </div>
