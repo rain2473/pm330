@@ -1,42 +1,25 @@
 
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-10-18(화)
+# Date    : 2022-10-20(목)
 
 
 
 # Required Modules
+from webbrowser import get
 import requests
 import xml.etree.ElementTree as et # XML Parser
 import json                        # JSON Parser
-import pandas                as pd
-import numpy                 as np
 
-# from pykrx            import stock
-# from pykrx            import bond
-from pytz             import timezone
 from datetime         import datetime, timedelta
-from pandas           import DataFrame
-
-from data_manipulator import *
+from data_manipulator import dm
 
 
 
 # Constants
 
-# * * *   Credentials   * * *
-API_KEY_OPEN_DATA_PORTAL = '<공공데이터 포털 서비스키>'
-
 # * * *   Network Configuration   * * *
 INTERVAL_API_CALL = 0.05 # 0.05 Second = 100ms
-
-# * * *   Date Strings   * * *
-YESTERDAY             = datetime.strftime(datetime.now(timezone('Asia/Seoul')) - timedelta(1)  , "%Y%m%d") # Yesterday (Format:"YYYYMMDD")
-PREVIOUS_BUSINESS_DAY = datetime.strftime(datetime.now(timezone('Asia/Seoul')) - timedelta(3)  , "%Y%m%d") if datetime.now(timezone('Asia/Seoul')).weekday() == 0 else YESTERDAY # Previous Business Day (Format:"YYYYMMDD")
-TODAY                 = datetime.strftime(datetime.now(timezone('Asia/Seoul'))                 , "%Y%m%d") # Yesterday (Format:"YYYYMMDD")
-TOMORROW              = datetime.strftime(datetime.now(timezone('Asia/Seoul')) + timedelta(1)  , "%Y%m%d") # Yesterday (Format:"YYYYMMDD")
-LAST_YEAR             = datetime.strftime(datetime.now(timezone('Asia/Seoul')) - timedelta(365), "%Y")     # Last year (Format:"YYYY")
-CURRENT_YEAR          = datetime.strftime(datetime.now(timezone('Asia/Seoul'))                 , "%Y")     # This year (Format:"YYYY")
 
 # * * *   API URLs   * * *
 URL_CORP_OUTLINE                = "http://apis.data.go.kr/1160100/service/GetCorpBasicInfoService/getCorpOutline"          # 금융위원회_기업기본정보: 기업개요조회
@@ -51,8 +34,8 @@ URL_ISSUCO_CUSTNO_BY_SHORT_ISIN = "http://api.seibro.or.kr/openapi/service/CorpS
 
 # * * *   The number of Maximum Items in Korea Stock Exchange (KOSPI/KOSDAQ/KONEX)   * * *
 # http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
-KOSPI_ITEMS   = 939
-KOSDAQ_ITEMS  = 1581
+KOSPI_ITEMS   = 940
+KOSDAQ_ITEMS  = 1592
 KONEX_ITEMS   = 125
 ALL_STOCKS_KR = KOSPI_ITEMS + KOSDAQ_ITEMS + KONEX_ITEMS
 
@@ -130,7 +113,7 @@ def get_corp_outline(serviceKey:str, pageNo=1, numOfRows=1, resultType="json", b
     }
 
     # Request
-    response_corp_outline = requests.get(set_query_url(service_url=URL_CORP_OUTLINE, params=query_params_corp_outline))
+    response_corp_outline = requests.get(dm.set_query_url(service_url=URL_CORP_OUTLINE, params=query_params_corp_outline))
 
     # Parsing
     try:
@@ -192,7 +175,7 @@ def get_stoc_issu_stat(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, result
     }
 
     # Request
-    response_stoc_issu_stat = requests.get(set_query_url(service_url=URL_STOC_ISSU_STAT, params=query_params_stoc_issu_stat))
+    response_stoc_issu_stat = requests.get(dm.set_query_url(service_url=URL_STOC_ISSU_STAT, params=query_params_stoc_issu_stat))
 
     # Parsing
     try:
@@ -243,8 +226,8 @@ def get_krx_listed_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resul
     [Returns]
     list : 한국 주식시장에 상장된 종목들의 기본정보 (list of dict)
         basDt     (str) : YYYYMMDD, 조회의 기준일, 통상 거래일
-        shortIsin (str) : 종목 코드보다 짧으면서 유일성이 보장되는 코드
-        srtnCd    (str) : 현선물 통합상품의 종목 코드(12자리)
+        srtnCd    (str) : 종목 코드보다 짧으면서 유일성이 보장되는 코드 (7자리)
+        isinCd    (str) : 현선물 통합상품의 종목 코드(12자리)
         mrktCtg   (str) : 시장 구분 (KOSPI/KOSDAQ/KONEX 등)
         itmsNm    (str) : 종목의 명칭
         crno      (str) : 종목의 법인등록번호
@@ -275,7 +258,7 @@ def get_krx_listed_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resul
     }
 
     # Request
-    response_krx_listed_info = requests.get(set_query_url(service_url=URL_KRX_LISTED_INFO, params=query_params_krx_listed_info))
+    response_krx_listed_info = requests.get(dm.set_query_url(service_url=URL_KRX_LISTED_INFO, params=query_params_krx_listed_info))
 
     # Parsing
     try:
@@ -325,7 +308,7 @@ def get_krx_listed_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resul
 
     return item
 
-def get_item_basi_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resultType="json", basDt="", crno="", corpNm="", stckIssuCmpyNm=""):
+def get_item_basi_info(serviceKey:str, pageNo=1, numOfRows=1, resultType="json", basDt="", crno="", corpNm="", stckIssuCmpyNm=""):
     """
     금융위원회_주식발행정보: 종목기본정보조회 검색 결과를 반환한다.
     * 금융위원회_KRX상장종목정보 (https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15043423)
@@ -373,7 +356,7 @@ def get_item_basi_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, result
     }
 
     # Request
-    response_item_basi_info = requests.get(set_query_url(service_url=URL_ITEM_BASI_INFO, params=query_params_item_basi_info))
+    response_item_basi_info = requests.get(dm.set_query_url(service_url=URL_ITEM_BASI_INFO, params=query_params_item_basi_info))
 
     # Parsing
     try:
@@ -398,7 +381,7 @@ def get_item_basi_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, result
 
     return item
 
-def get_summ_fina_stat(serviceKey:str, pageNo=1, numOfRows=1, resultType="json", crno="", bizYear=LAST_YEAR, type="ALL"):
+def get_summ_fina_stat(serviceKey:str, pageNo=1, numOfRows=1, resultType="json", crno="", bizYear=dm.LAST_YEAR, type="ALL"):
     """
     금융위원회_기업 재무정보: 요약재무제표조회 검색 결과를 반환한다.
     * 금융위원회_기업 재무정보: 요약재무제표조회 (https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15043459)
@@ -448,7 +431,7 @@ def get_summ_fina_stat(serviceKey:str, pageNo=1, numOfRows=1, resultType="json",
     }
     
     # Request
-    response_summ_fina_stat = requests.get(set_query_url(service_url=URL_SUMM_FINA_STAT, params=query_params_summ_fina_stat))
+    response_summ_fina_stat = requests.get(dm.set_query_url(service_url=URL_SUMM_FINA_STAT, params=query_params_summ_fina_stat))
 
     # Parsing
     try:
@@ -530,7 +513,7 @@ def get_issuco_basic_info(serviceKey:str, issucoCustno:str):
     }
 
     # Request
-    response_issuco_basic_info = requests.get(set_query_url(service_url=URL_ISSUCO_BASIC_INFO, params=query_params_issuco_basic_info))
+    response_issuco_basic_info = requests.get(dm.set_query_url(service_url=URL_ISSUCO_BASIC_INFO, params=query_params_issuco_basic_info))
 
     # Parsing
     try:
@@ -568,7 +551,7 @@ def get_issuco_custno_by_short_isin(serviceKey:str, shortIsin:str):
     shortIsin  (str) : 종목 코드보다 짧으면서 유일성이 보장되는 코드 (Mandatory) 
 
     [Returns]
-    item : 단축번호에 해당되는 발행회사정보 (dict)
+    dict : 단축번호에 해당되는 발행회사정보
         issucoCustno  (str) : 발행회사번호
         issucoNm      (str) : 발행회사명
         listNm        (str) : 상장시장명
@@ -583,7 +566,7 @@ def get_issuco_custno_by_short_isin(serviceKey:str, shortIsin:str):
     }
 
     # Request
-    response_issuco_custno_by_short_isin = requests.get(set_query_url(service_url=URL_ISSUCO_CUSTNO_BY_SHORT_ISIN, params=query_params_issuco_custno_by_short_isin))
+    response_issuco_custno_by_short_isin = requests.get(dm.set_query_url(service_url=URL_ISSUCO_CUSTNO_BY_SHORT_ISIN, params=query_params_issuco_custno_by_short_isin))
 
     # Parsing
     try:
@@ -610,7 +593,7 @@ def get_issuco_custno_by_short_isin(serviceKey:str, shortIsin:str):
 
     return item        
 
-def get_stock_price_info(serviceKey:str, pageNo=1, numOfRows=999, resultType="json", basDt="", beginBasDt="", endBasDt="", likeBasDt="", likeSrtnCd="", isinCd="", likeIsinCd="", itmsNm="", likeItmsNm="", mrktCls="", beginVs="", endVs="", beginFltRt="", endFltRt="", beginTrqu="", endTrqu="", beginTrPrc="", endTrPrc="", beginLstgStCnt="", endLstgStCnt="", beginMrktTotAmt="", endMrktTotAmt=""):
+def get_stock_price_info(serviceKey:str, pageNo=1, numOfRows=1, resultType="json", basDt="", beginBasDt="", endBasDt="", likeBasDt="", likeSrtnCd="", isinCd="", likeIsinCd="", itmsNm="", likeItmsNm="", mrktCls="", beginVs="", endVs="", beginFltRt="", endFltRt="", beginTrqu="", endTrqu="", beginTrPrc="", endTrPrc="", beginLstgStCnt="", endLstgStCnt="", beginMrktTotAmt="", endMrktTotAmt=""):
     """
     금융위원회_주식시세정보: 주식시세 검색 결과를 반환한다.
     * 금융위원회_주식시세정보: 주식시세 (https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15094808)
@@ -644,7 +627,7 @@ def get_stock_price_info(serviceKey:str, pageNo=1, numOfRows=999, resultType="js
     endMrktTotAmt   (str) : 시가총액이 검색값보다 작은 데이터를 검색 (Default: "")
 
     [Returns]
-    item : 검색한 종목의 주식시세정보 (dict)
+    dict : 검색한 종목의 주식시세정보
         basDt      (string) : 기준일자
         srtnCd     (string) : 종목 코드보다 짧으면서 유일성이 보장되는 코드(6자리)
         isinCd     (string) : 국제 채권 식별 번호. 유가증권(채권)의 국제인증 고유번호
@@ -660,6 +643,8 @@ def get_stock_price_info(serviceKey:str, pageNo=1, numOfRows=999, resultType="js
         trPrc      (number) : 거래건 별 체결가격 * 체결수량의 누적 합계
         lstgStCnt  (number) : 종목의 상장주식수
         mrktTotAmt (number) : 종가 * 상장주식수
+
+    None : 요청에 실패한 경우
     """
         
     # Parameter Setting
@@ -693,7 +678,7 @@ def get_stock_price_info(serviceKey:str, pageNo=1, numOfRows=999, resultType="js
     }
 
     # Request
-    response_stock_price_info = requests.get(set_query_url(service_url=URL_STOCK_PRICE_INFO, params=query_params_stock_price_info))
+    response_stock_price_info = requests.get(dm.set_query_url(service_url=URL_STOCK_PRICE_INFO, params=query_params_stock_price_info))
 
     # Parsing
     header = json.loads(response_stock_price_info.text)["response"]["header"]
@@ -792,7 +777,7 @@ def get_stock_market_index(serviceKey:str, pageNo=1, numOfRows=1, resultType="js
     endLsYrEdVsFltRt    (str) : 전년말대비_등락률이 검색값보다 작은 데이터를 검색
 
     [Returns]
-    item : 주가지수시세에 대한 정보 (dict)
+    dict : 주가지수시세에 대한 정보
         lsYrEdVsFltRt  (number) : 지수의 전년말대비 등락율
         basPntm        (string) : 지수를 산출하기 위한 기준시점
         basIdx         (number) : 기준시점의 지수값
@@ -814,6 +799,8 @@ def get_stock_market_index(serviceKey:str, pageNo=1, numOfRows=1, resultType="js
         yrWRcrdHgstDt  (string) : 지수가 연중최고치를 기록한 날짜
         yrWRcrdLwst    (number) : 지수의 연중최저치
         yrWRcrdLwstDt  (string) : 지수가 연중최저치를 기록한 날짜
+
+    None : 요청에 실패한 경우
     """
 
     # Parameter Setting
@@ -845,7 +832,7 @@ def get_stock_market_index(serviceKey:str, pageNo=1, numOfRows=1, resultType="js
     }
 
     # Request
-    response_stock_market_index = requests.get(set_query_url(service_url=URL_STOCK_MARKET_INDEX, params=query_params_stock_market_index))
+    response_stock_market_index = requests.get(dm.set_query_url(service_url=URL_STOCK_MARKET_INDEX, params=query_params_stock_market_index))
 
     # Parsing
     header = json.loads(response_stock_market_index.text)["response"]["header"]
@@ -867,33 +854,70 @@ def get_stock_market_index(serviceKey:str, pageNo=1, numOfRows=1, resultType="js
 
     return item
 
-def get_market_ohlcv_by_date(short_isin_code:str, start_date:str, end_date:str):
-    
+def get_market_ohlcv_by_date(short_isin_code:str, start_date:str='20000101', end_date:str=dm.YESTERDAY):
+    """
+    금융위원회_지수시세정보: 주가지수시세 검색 결과를 반환한다.
+    * 금융위원회_지수시세정보: 주가지수시세 (https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15094807)
+        
+    [Parameters]
+    short_isin_code (str) : 공공데이터 포털에서 받은 인증키 (Mandatory) 
+    start_date      (str) : 조회 시작 일자 (yyyymmdd) (default:20000101)
+    end_date        (str) : 조회 종료 일자 (yyyymmdd) (default:YESTERDAT (전일))
+
+    [Returns]
+    list : 주가에 대한 정보 (list of dict)
+        base_date        (string)  : 기준일자
+        short_isin_code  (string)  : 국제 증권 식별 번호 (축약형, 6자리)
+        market_price     (integer) : 시가
+        close_price      (integer) : 종가
+        high_price       (integer) : 고가
+        low_price        (integer) : 저가
+        fluctuation      (integer) : 등락
+        fluctuation_rate (float)   : 등락률
+        volume           (integer) : 거래량
+
+    None : 요청에 실패한 경우
+    """
+
     start_date = datetime.strptime(start_date, '%Y%m%d')
     end_date = datetime.strptime(end_date, '%Y%m%d')    
     today = datetime.now()
-    elapsed = today - start_date + pd.Timedelta(days=1)
+    elapsed = today - start_date + timedelta(days=1)
 
-    xml = Sise().fetch(short_isin_code, elapsed.days)
+    xml = dm.Sise().fetch(short_isin_code, elapsed.days)
 
     result = []
     try:
         columns = ['base_date', 'market_price', 'high_price', 'low_price', 'close_price', 'volume']
-
+        idx = 0
         for node in et.fromstring(xml).iter(tag='item'):
             raw_ohlcv = node.get('data')
             raw_ohlcv = raw_ohlcv.split("|")
 
             row = {}
             for value, column in zip(raw_ohlcv, columns):
-                row[column] = value
+                if column in ['market_price', 'close_price', 'high_price', 'low_price', 'volume']:
+                    row[column] = int(value)
+                else:
+                    row[column] = value
+
+            row['short_isin_code'] = short_isin_code
+
+            # Calculation of Fluctuation and Fluctuation Rate (등락과 등락율 계산)
+            if idx > 0:
+                row['fluctuation'] = int(row['close_price']) - int(result[idx-1]['close_price'])
+                row['fluctuation_rate'] = int(row['fluctuation']) / int(result[idx-1]['close_price'])
+            else:
+                row['fluctuation'] = 0
+                row['fluctuation_rate'] = 0
 
             base_date = datetime.strptime(row['base_date'], '%Y%m%d')
             if start_date <= base_date and base_date <= end_date:
                 result.append(row)
+                idx += 1
 
         return result
 
     except et.ParseError:
         print("[ERROR] Parser Error")
-        return None    
+        return None
