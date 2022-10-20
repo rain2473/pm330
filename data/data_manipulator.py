@@ -1,12 +1,84 @@
 
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-10-18(화)
+# Date    : 2022-10-20(목)
+
+
+
+# Required Modules
+import requests
+
+from abc         import abstractmethod
+from collections import defaultdict
+from datetime    import datetime, timedelta
+from pytz        import timezone
+
+
+
+# Constants
+
+# * * *   Date Strings   * * *
+YESTERDAY             = datetime.strftime(datetime.now(timezone('Asia/Seoul')) - timedelta(1)  , "%Y%m%d") # Yesterday (Format:"YYYYMMDD")
+PREVIOUS_BUSINESS_DAY = datetime.strftime(datetime.now(timezone('Asia/Seoul')) - timedelta(3)  , "%Y%m%d") if datetime.now(timezone('Asia/Seoul')).weekday() == 0 else YESTERDAY # Previous Business Day (Format:"YYYYMMDD")
+TODAY                 = datetime.strftime(datetime.now(timezone('Asia/Seoul'))                 , "%Y%m%d") # Yesterday (Format:"YYYYMMDD")
+TOMORROW              = datetime.strftime(datetime.now(timezone('Asia/Seoul')) + timedelta(1)  , "%Y%m%d") # Yesterday (Format:"YYYYMMDD")
+LAST_YEAR             = datetime.strftime(datetime.now(timezone('Asia/Seoul')) - timedelta(365), "%Y")     # Last year (Format:"YYYY")
+CURRENT_YEAR          = datetime.strftime(datetime.now(timezone('Asia/Seoul'))                 , "%Y")     # This year (Format:"YYYY")
+
+
+
+# Class Declaration
+class Get:
+    def __init__(self):
+        self.headers = {"User-Agent": "Mozilla/5.0"}
+
+    def read(self, **params):
+        resp = requests.get(self.url, headers=self.headers, params=params)
+        return resp
+
+    @property
+    @abstractmethod
+    def url(self):
+        return NotImplementedError
+
+class Post:
+    def __init__(self, headers=None):
+        self.headers = {"User-Agent": "Mozilla/5.0"}
+        if headers is not None:
+            self.headers.update(headers)
+
+    def read(self, **params):
+        resp = requests.post(self.url, headers=self.headers, data=params)
+        return resp
+
+    @property
+    @abstractmethod
+    def url(self):
+        return NotImplementedError
+
+class NaverWebIo(Get):
+    @property
+    def url(self):
+        return "http://fchart.stock.naver.com/sise.nhn"
+
+class Sise(NaverWebIo):
+    @property
+    def uri(self):
+        return "/sise.nhn"
+
+    def fetch(self, ticker, count, timeframe='day'):
+        """
+        :param ticker:
+        :param count:
+        :param timeframe: day/week/month
+        :return:
+        """
+        result = self.read(symbol=ticker, timeframe=timeframe, count=count, requestType="0")
+        return result.text
 
 
 
 # Function Declaration
-
 def set_query_url(service_url:str, params:dict):
     """
     요청 주소와 파라미터들을 입력받아 REST API Server에 전송할 URL을 구성하여 반환한다.
@@ -67,15 +139,9 @@ def left_join_by_key(ldata:list, rdata:list, key:str):
     list : 병합된 데이터 (list of dict)
     """
 
-    merged_list = []
+    d = defaultdict(dict)
 
-    for data in ldata:
-        merged_list.append(data)
-
-    for item in merged_list:
-        for data in rdata:
-            if item[key] == data[key]:
-                for k, v in data.items():
-                    item[k] = v
-
-    return merged_list
+    for item in ldata + rdata:
+        d[item[key]].update(item)
+        
+    return list(d.values())
