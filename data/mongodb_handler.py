@@ -6,9 +6,6 @@
 
 
 # Required Modules
-import configparser
-
-from sqlite3        import connect
 from pymongo        import MongoClient
 from pymongo.cursor import CursorType
 
