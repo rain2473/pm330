@@ -6,14 +6,10 @@
 
 
 # Required Modules
+from asyncio.windows_events import NULL
 import psycopg2
 
-
-# Connection Information
-HOST     = 'pm330.c68tjqdjajqc.us-east-1.rds.amazonaws.com'
-PORT     = 5432   # Default port number of postgres
-USER     = 'postgres'
-password = '12341234'
+from config import *
 
 
 
@@ -25,50 +21,47 @@ TYPE_basic_stock_info = {
     'item_name'       : 'varchar',
     'corp_name'       : 'varchar',
     'corp_number'     : 'varchar',
-    'corp_url'        : 'varchar',
-    'list_date'       : 'date',
-    'face_value'      : 'int',
+    'listing_date'    : 'date',
     'issue_cnt'       : 'bigint',
     'industry'        : 'varchar',
+    'face_value'      : 'integer',
+}
+
+TYPE_financial_info = {
+    'isin_code'  : 'varchar',
+    'bps'        : 'integer',
+    'per'        : 'double precision',
+    'pbr'        : 'double precision',
+    'eps'        : 'integer',
+    'div'        : 'double precision',
+    'dps'        : 'integer',
 }
 
 TYPE_member_info = {
     'member_id'         : 'varchar',
     'member_pw'         : 'varchar',
     'member_name'       : 'varchar',
-    'member_phone'      : 'varchar',
-    'brokerage_firm'    : 'varchar',
-    'brokerage_account' : 'varchar',
-    'member_propensity' : 'varchar',
-}
-
-TYPE_price_info = {
-    'base_date'        : 'date',
-    'isin_code'        : 'varchar',
-    'market_price'     : 'int',
-    'close_price'      : 'int',
-    'high_price'       : 'int',
-    'low_price'        : 'int',
-    'fluctuation'      : 'int',
-    'fluctuation_rate' : 'float8',
-    'cum_volume'       : 'bigint',
+    'member_email'      : 'varchar',
 }
 
 TYPE_news_info = {
     'isin_code'  : 'varchar',
     'write_date' : 'date',
     'headline'   : 'varchar',
-    'sentiment'  : 'float8',
+    'sentiment'  : 'double precision',
+    'news_id'    : 'bigint', # Serial8 Type
 }
 
-TYPE_financial_info = {
-    'isin_code'  : 'varchar',
-    'bps'        : 'date',
-    'per'        : 'varchar',
-    'pbr'        : 'float8',
-    'eps'        : 'int',
-    'div'        : 'float8',
-    'dps'        : 'int',
+TYPE_price_info = {
+    'base_date'        : 'date',
+    'isin_code'        : 'varchar',
+    'market_price'     : 'integer',
+    'close_price'      : 'integer',
+    'high_price'       : 'integer',
+    'low_price'        : 'integer',
+    'fluctuation'      : 'integer',
+    'fluctuation_rate' : 'double precision',
+    'volume'           : 'bigint',
 }
 
 LIST_TABLE_NAME = [
@@ -87,7 +80,8 @@ SCHEMA = {
     'financial_info'   : TYPE_financial_info,
 }
 
-STR_TYPES = ['varchar', 'text', 'char', 'date']
+STR_TYPES  = ['varchar', 'text', 'char', 'date']
+NULL_TYPES = [None, 'None', 'none', 'NULL', 'null', 'nullptr', '']
 
 
 
@@ -105,13 +99,13 @@ def get_type_by_column_name(table:str=None, column:str=None):
 # Class Declaration
 class PostgresHandler():
 
-    def __init__(self):
+    def __init__(self, host, port, user, password):
 
         self._client = psycopg2.connect(
-            host     = HOST , 
-            user     = USER,
-            password = password,
-            port     = PORT
+            host     = host ,
+            port     = port ,
+            user     = user ,
+            password = password            
         )
 
         self.cursor = self._client.cursor()
@@ -131,7 +125,7 @@ class PostgresHandler():
 
         self.cursor.commit()
 
-    def insert_item(self, schema:str='postgres', table:str=None, data:dict=None):
+    def insert_item(self, schema:str='postgres', table:str=None, columns:list=None, data:dict=None):
 
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
@@ -139,20 +133,63 @@ class PostgresHandler():
         if data is None:
             raise f"[ERROR] Empty Data Insertion: data is empty"
 
-        columns = ""
         values = ""
 
-        for column, value in data.items():
-            columns += column + ", "
-            if get_type_by_column_name(table, column) in STR_TYPES:
-                values += "'" + value + "', "
+        for column in columns:
+            
+            if data[column] in NULL_TYPES:
+                values += "None" + ", "
+            elif get_type_by_column_name(table, column) in STR_TYPES:
+                values += "'" + str(data[column]) + "', "
             else:
-                values += value + ", "
+                values += str(data[column]) + ", "
 
-        columns = columns[:-2]
         values = values[:-2]
 
-        sql = f" INSERT INTO {schema}.{table} ({columns}) VALUES ({values}) ;"
+        sql = f""" INSERT INTO {table} ({', '.join(columns)}) VALUES ({values}) ;"""
+
+        print("SQL: ", sql)
+
+        try:
+            self.cursor.execute(sql)
+            self._client.commit()
+
+        except Exception as err_msg :
+            print(f"[ERROR] Insert Error: {err_msg}") 
+
+    def insert_items(self, table:str=None, columns:list=None, data:list=None):
+
+        if (table not in LIST_TABLE_NAME) or (table is None):
+            raise f"[ERROR] Invalid Table Name: {table} does not exist"
+
+        if data is None:
+            raise f"[ERROR] Empty Data Insertion: data is empty"
+
+        value_list = []
+        
+        for row in data:
+            values = "("
+            for column in columns:
+
+                if row[column] in NULL_TYPES:
+                    values += "null" + ", "
+                elif get_type_by_column_name(table, column) in STR_TYPES:
+                    values += "'" + str(row[column]) + "', "
+                else:
+                    values += str(row[column]) + ", "
+                    
+            values = values[:-2]
+            values += ")"
+            value_list.append(values)
+
+        sql = f""" INSERT INTO {table} ({', '.join(columns)}) VALUES """
+        for value in value_list:
+            sql += value + ', '
+
+        sql = sql[:-2]
+        sql += ';'
+
+        print("SQL: ", sql)
 
         try:
             self.cursor.execute(sql)
@@ -161,22 +198,25 @@ class PostgresHandler():
         except Exception as err_msg :
             print(f"[ERROR] Insert Error: {err_msg}") 
     
-    def find_item(self, table:str=None, column='ALL', condition=None):
+    def find_item(self, table:str=None, column='ALL', condition:str=None):
 
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
 
-        if column is None:
-            raise f"[ERROR] Empty Data Insertion: data is empty"
-        elif column == 'ALL':
+        if column == 'ALL':
             column = "*"
-        else:
+        elif type(list()) == type(column):
             column = ", ".join(column)
-
+            column = "(" + column + ")"
+        elif type(str()) == type(column):
+            pass
+            
         if condition is None:
-            sql = f" SELECT {column} FROM {table} ;"
+            sql = f""" SELECT {column} FROM {table} ;"""
         else:
-            sql = f" SELECT {column} FROM {table} WHERE {condition} ;"
+            sql = f""" SELECT {column} FROM {table} WHERE {condition} ;"""
+
+        print("SQL: ", sql)
 
         try:
             self.cursor.execute(sql)
@@ -220,6 +260,3 @@ class PostgresHandler():
 
         except Exception as err_msg:
             print(f"[ERROR] Delete Error: {err_msg}")
-
-    def get_close_price(self, ticker, start_date, end_date):
-        pass
