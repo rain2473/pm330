@@ -7,8 +7,8 @@
 
 # Required Modules
 import psycopg2    # Command to install: "pip install psycopg2-binary"
-import config
 
+import conn_config      as config
 import api_handler      as api
 import data_manipulator as dm
 
@@ -367,29 +367,6 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] build_price_info Error: {err_msg}")
 
-    def build_news_info(self):
-        """
-        데이터베이스의 news_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 뉴스정보들을 저장한다.
-        ※ 본 메서드는 DBA만 수행할 수 있다.
-        
-        [Parameters]
-        -
-        
-        [Returns]
-        -
-        """
-
-        # DBA Only can run initial building function
-        if(self.conn_user != config.ID_DBA):
-            print("Only DBA can run the build function")
-            return False
-
-        try:
-            pass # This logic not implemented yet
-            
-        except Exception as err_msg:
-            print(f"[ERROR] build_news_info Error: {err_msg}")
-
     def build_financial_info(self):
         """
         데이터베이스의 financial_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 재무정보들을 저장한다.
@@ -503,38 +480,6 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] get_close_price Error: {err_msg}")
 
-    def get_sentiment_by_ticker():
-
-        try:
-            pass # This logic not implemented yet
-
-        except Exception as err_msg:
-            print(f"[ERROR] get_sentiment_by_ticker Error: {err_msg}")
-
-    def get_news():
-
-        try:
-            pass # This logic not implemented yet
-
-        except Exception as err_msg:
-            print(f"[ERROR] get_news Error: {err_msg}")
-
-    def get_unscoring_news():
-        
-        try:
-            pass # This logic not implemented yet
-
-        except Exception as err_msg:
-            print(f"[ERROR] get_unscoring_news Error: {err_msg}")
-
-    def set_setiment_by_news_id():
-        
-        try:
-            pass # This logic not implemented yet
-
-        except Exception as err_msg:
-            print(f"[ERROR] set_setiment_by_news_id Error: {err_msg}")
-
     def set_news(self, isin_code:str, write_date:str, headline:str, sentiment:float):
         """
         새로운 뉴스 기사를 데이터베이스에 저장한다.
@@ -565,15 +510,46 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] set_news Error: {err_msg}")
 
-    def set_new_member(self, *new_member):
+    def set_multiple_news(self, news_list:list):
+        """
+        새로운 다수의 뉴스 기사를 데이터베이스에 저장한다.
+        해당 종목(short_isin_code)에 연관된 뉴스 기사가 50개를 초과할 경우,
+        가장 오래된 뉴스 기사를 제거하고 삽입한다.
+
+        [Parameters]
+        news_list (list) : 저장할 다수의 뉴스들의 정보가 담긴 2차원 리스트 ex) [[<isin_code>, <write_date>, <headline>, <sentiment>], ...]
+            isin_code  (str)   : 국제 증권 식별 번호 (12자리)
+            write_date (str)   : 뉴스 기사 작성 일자 (Format: YYYYMMDD)
+            headline   (str)   : 뉴스 헤드라인
+            sentiment  (float) : 뉴스 감정도
+        
+        [Returns]
+        list : 해당 뉴스에 부여된 고유번호들이 담긴 리스트
+        """
+
+        # try:
+        #     data = {
+        #         'isin_code'  : isin_code,
+        #         'write_date' : write_date,
+        #         'headline'   : headline,
+        #         'sentiment'  : sentiment
+        #     }
+
+        #     self.insert_items((table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=data)
+        #     return self.find_item(table='news_info', column='news_id', condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{write_date}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{headline}' AS {TYPE_news_info['headline']})")[0][0]
+
+        # except Exception as err_msg:
+        #     print(f"[ERROR] set_multiple_news Error: {err_msg}")
+        pass
+
+    def set_new_member(self, member_id:str, member_pw:str, member_email:str):
         """
         신규 회원의 정보를 입력받아 데이터베이스에 저장한다.
 
         [Parameters]
-        *new_member : 신규가입할 회원의 정보
-            member_id    (str) : 회원 ID
-            member_pw    (str) : 회원 비밀번호
-            member_email (str) : 회원 이메일
+        member_id    (str) : 신규회원 ID
+        member_pw    (str) : 신규회원 비밀번호
+        member_email (str) : 신규회원 이메일
         
         [Returns]
         True  : 데이터베이스에 중복된 ID가 존재하지 않아 저장에 성공한 경우
@@ -581,18 +557,20 @@ class PostgresHandler():
         """
 
         try:
+            # Duplicates Check
+            if len(self.find_item(table='member_info', condition=f"member_id = CAST({member_id} AS {TYPE_member_info['member_id']})")) > 0: # 해당 아이디가 이미 존재함
+                return False
+            
             # Parameter Setting
-            columns = TYPE_member_info.keys()
+            columns = list(TYPE_member_info.keys())
+            data = list(member_id, member_pw, member_email)
             signup_data = dict()
 
-            for column, data in zip(columns, new_member):
-                signup_data[column] = data
+            for column, value in zip(columns, data):
+                signup_data[column] = value
 
             # Query
-            result = self.insert_item(table='member_info', column=new_member, data=signup_data)
-
-            if result is not None:
-                return True
+            self.insert_item(table='member_info', column=columns, data=signup_data)
 
         except Exception as err_msg:
             print(f"[ERROR] set_new_member Error: {err_msg}")
