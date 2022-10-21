@@ -597,6 +597,3 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] set_new_member Error: {err_msg}")
             return False
-
-pgdb = PostgresHandler(user='byeong_heon', password='kbitacademy')
-print(pgdb.set_news(isin_code=pgdb.get_isin_code('005930'),write_date='20221010', headline='이재용 구속, 어쩌나...?', sentiment=0.9876543210))
