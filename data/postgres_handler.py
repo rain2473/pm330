@@ -99,11 +99,12 @@ def get_type_by_column_name(table:str=None, column:str=None):
 class PostgresHandler():
 
     # * * *    Low-Level Methods (SQL Handlers)    * * *
-    def __init__(self, user:str, password:str, host=config.POSTGRES_HOST, port=config.POSTGRES_PORT):
+    def __init__(self, user:str, password:str, host=config.POSTGRES_HOST, port=config.POSTGRES_PORT, db_name=config.PORTGRES_DB_NAME):
 
         self._client = psycopg2.connect(
             host     = host,
             port     = port,
+            dbname   = db_name,
             user     = user,
             password = password            
         )
@@ -127,6 +128,11 @@ class PostgresHandler():
         self.cursor.commit()
 
     def insert_item(self, schema:str='postgres', table:str=None, columns:list=None, data:dict=None):
+
+        # DBA Only can run initial building function
+        if(self.conn_user != config.ID_DBA):
+            print("Only DBA can run the build function")
+            return False
 
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
@@ -427,7 +433,7 @@ class PostgresHandler():
         isin_code (str) : 국제 증권 식별 번호 (축약형, 6자리)
 
         [Returns]
-        str  : 국제 증권 식별 번호 (13자리)
+        str  : 국제 증권 식별 번호 (12자리)
         """
 
         try:
