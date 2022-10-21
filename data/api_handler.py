@@ -25,10 +25,10 @@
 from webbrowser import get
 import requests
 import xml.etree.ElementTree as et # XML Parser
+import data_manipulator      as dm
 import json                        # JSON Parser
 
 from datetime         import datetime, timedelta
-from data_manipulator import dm
 
 
 
