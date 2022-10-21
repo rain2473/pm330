@@ -14,7 +14,7 @@ import config
 
 
 # Function Declaration
-def build_basic_stock_info():
+def build_basic_stock_info(id:str, pw:str):
     """
     데이터베이스의 basic_stock_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 기본정보들을 저장한다.
 
@@ -25,9 +25,13 @@ def build_basic_stock_info():
     -
     """
 
+    if(not(id == config.ID_DBA and id == config.PW_DBA)):
+        print("Only DBA can run the build function")
+        return False
+
     try:
         # DB Construction
-        pgdb = pg.PostgresHandler(host=config.POSTGRES_HOST, port=config.POSTGRES_PORT, user=config.POSTGRES_USER, password=config.POSTGRES_USER_PW)
+        pgdb = pg.PostgresHandler(user=id, password=pw)
         
         # Clear Table
         pgdb.delete_item(table='basic_stock_info')
@@ -69,11 +73,15 @@ def build_basic_stock_info():
     except Exception as err_msg:
         print(f"[ERROR] build_basic_stock_info: {err_msg}")
 
-def build_price_info():
+def build_price_info(id:str, pw:str):
     
+    if(not(id == config.ID_DBA and id == config.PW_DBA)):
+        print("Only DBA can run the build function")
+        return False
+
     try:
         # DB Construction
-        pgdb = pg.PostgresHandler(host=config.POSTGRES_HOST, port=config.POSTGRES_PORT, user=config.POSTGRES_USER, password=config.POSTGRES_USER_PW)
+        pgdb = pg.PostgresHandler(user=id, password=pw)
         
         # Listing All Stock
         krx_listed_info = api.get_krx_listed_info(serviceKey=config.API_KEY_OPEN_DATA_PORTAL, numOfRows=3)
@@ -91,17 +99,48 @@ def build_price_info():
     except Exception as err_msg:
         print(f"[ERROR] build_price_info Error: {err_msg}")
 
-def build_news_info():
-    pass
+def build_news_info(id:str, pw:str):
 
-def build_financial_info():
-    pass
-
-def get_isin_code(short_isin_code:str):
+    if(not(id == config.ID_DBA and id == config.PW_DBA)):
+        print("Only DBA can run the build function")
+        return False
 
     try:
         # DB Construction
-        pgdb = pg.PostgresHandler(host=config.POSTGRES_HOST, port=config.POSTGRES_PORT, user=config.POSTGRES_USER, password=config.POSTGRES_USER_PW)
+        pgdb = pg.PostgresHandler(user=id, password=pw)
+
+    except Exception as err_msg:
+        print(f"[ERROR] build_news_info Error: {err_msg}")
+
+def build_financial_info(id:str, pw:str):
+
+    if(not(id == config.ID_DBA and id == config.PW_DBA)):
+        print("Only DBA can run the build function")
+        return False
+
+    try:
+        # DB Construction
+        pgdb = pg.PostgresHandler(user=id, password=pw)
+        
+    except Exception as err_msg:
+        print(f"[ERROR] build_financial_info Error: {err_msg}")
+
+def get_all_data(id:str, pw:str, table:str=None, column:str='ALL'):
+    
+    try:
+        # DB Construction
+        pgdb = pg.PostgresHandler(user=id, password=pw)
+        
+        return pgdb.find_item(table=table, column=column)
+    
+    except Exception as err_msg:
+        print(f"[ERROR] get_all_data Error: {err_msg}")
+
+def get_isin_code(id:str, pw:str, short_isin_code:str):
+
+    try:
+        # DB Construction
+        pgdb = pg.PostgresHandler(user=id, password=pw)
     
         # Query
         result = pgdb.find_item(table='basic_stock_info', column='isin_code', condition=f"short_isin_code = CAST('{short_isin_code}' AS varchar)")
@@ -111,7 +150,7 @@ def get_isin_code(short_isin_code:str):
     except Exception as err_msg:
         print(f"[ERROR] get_isin_code Error: {err_msg}")
 
-def get_short_isin_code(isin_code:str):
+def get_short_isin_code(id:str, pw:str, isin_code:str):
 
     try:
         # DB Construction
@@ -125,7 +164,7 @@ def get_short_isin_code(isin_code:str):
     except Exception as err_msg:
         print(f"[ERROR] get_short_isin_code Error: {err_msg}")
 
-def get_close_price(isin_code:str, start_date:str='20000101', end_date:str=dm.YESTERDAY):
+def get_close_price(id:str, pw:str, isin_code:str, start_date:str='20000101', end_date:str=dm.YESTERDAY):
     """
     ISIN Code에 해당하는 종목의 종가를 조회한다.
 
@@ -183,7 +222,6 @@ def set_new_member(*new_member):
     *new_member : 신규가입할 회원의 정보
         member_id    (str) : 회원 ID
         member_pw    (str) : 회원 비밀번호
-        member_name  (str) : 회원 성명
         member_email (str) : 회원 이메일
     
     [Returns]
@@ -203,7 +241,7 @@ def set_new_member(*new_member):
             signup_data[column] = data
 
         # Query
-        result = pgdb.insert_item(table='member_info', column=['member_id', 'member_pw', 'member_name', 'member_email'], data=signup_data)
+        result = pgdb.insert_item(table='member_info', column=new_member, data=signup_data)
 
         if result is not None:
             return True
