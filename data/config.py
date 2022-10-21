@@ -11,6 +11,7 @@ API_KEY_OPEN_DATA_PORTAL = '<공공데이터 포털 API Key>'
 # * * *   DB Connection Information   * * *
 POSTGRES_HOST     = 'pm330.c68tjqdjajqc.us-east-1.rds.amazonaws.com'
 POSTGRES_PORT     = 5432   # Default port number of postgres
+PORTGRES_DB_NAME  = 'postgres'
 
 # 이병헌
 ID_DBA = 'byeong_heon'
