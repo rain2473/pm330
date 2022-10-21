@@ -29,19 +29,19 @@ TYPE_basic_stock_info = {
 }
 
 TYPE_financial_info = {
-    'isin_code'  : 'varchar',
-    'bps'        : 'integer',
-    'per'        : 'double precision',
-    'pbr'        : 'double precision',
-    'eps'        : 'integer',
-    'div'        : 'double precision',
-    'dps'        : 'integer',
+    'isin_code' : 'varchar',
+    'bps'       : 'integer',
+    'per'       : 'double precision',
+    'pbr'       : 'double precision',
+    'eps'       : 'integer',
+    'div'       : 'double precision',
+    'dps'       : 'integer',
 }
 
 TYPE_member_info = {
-    'member_id'         : 'varchar',
-    'member_pw'         : 'varchar',
-    'member_email'      : 'varchar',
+    'member_id'    : 'varchar',
+    'member_pw'    : 'varchar',
+    'member_email' : 'varchar',
 }
 
 TYPE_news_info = {
@@ -62,6 +62,14 @@ TYPE_price_info = {
     'fluctuation'      : 'integer',
     'fluctuation_rate' : 'double precision',
     'volume'           : 'bigint',
+}
+
+TYPE_world_index_info = {
+
+}
+
+TYPE_world_index_price = {
+    
 }
 
 LIST_TABLE_NAME = [
@@ -128,11 +136,6 @@ class PostgresHandler():
         self.cursor.commit()
 
     def insert_item(self, schema:str='postgres', table:str=None, columns:list=None, data:dict=None):
-
-        # DBA Only can run initial building function
-        if(self.conn_user != config.ID_DBA):
-            print("Only DBA can run the build function")
-            return False
 
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
@@ -345,8 +348,11 @@ class PostgresHandler():
             return False
 
         try:
+            # Clear Table
+            self.delete_item(table='price_info')
+
             # Listing All Stock
-            krx_listed_info = api.get_krx_listed_info(serviceKey=config.API_KEY_OPEN_DATA_PORTAL, numOfRows=3)
+            krx_listed_info = api.get_krx_listed_info(serviceKey=config.API_KEY_OPEN_DATA_PORTAL)
 
             for kr_stock in krx_listed_info:
 
@@ -450,7 +456,7 @@ class PostgresHandler():
         ISIN Code에 해당하는 종목의 종가를 조회한다.
 
         [Parameters]
-        isin_code (str) : 국제 증권 식별 번호 (13자리)
+        isin_code (str) : 국제 증권 식별 번호 (12자리)
 
         [Returns]
         str  : 국제 증권 식별 번호 (축약형, 6자리)
@@ -470,7 +476,7 @@ class PostgresHandler():
         ISIN Code에 해당하는 종목의 종가를 조회한다.
 
         [Parameters]
-        isin_code  (str) : 국제 증권 식별 번호 (13자리)
+        isin_code  (str) : 국제 증권 식별 번호 (12자리)
         start_date (str) : 조회를 시작할 날짜 (Format: YYYYMMDD) (Default: '20000101')
         end_date   (str) : 조회를 종료할 날짜 (Format: YYYYMMDD) (Default: 전일 (KST 기준))
         
@@ -529,10 +535,32 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] set_setiment_by_news_id Error: {err_msg}")
 
-    def set_news():
+    def set_news(self, isin_code:str, write_date:str, headline:str, sentiment:float):
+        """
+        새로운 뉴스 기사를 데이터베이스에 저장한다.
+        해당 종목(short_isin_code)에 연관된 뉴스 기사가 50개를 초과할 경우,
+        가장 오래된 뉴스 기사를 제거하고 삽입한다.
+
+        [Parameters]
+        isin_code  (str)   : 국제 증권 식별 번호 (12자리)
+        write_date (str)   : 뉴스 기사 작성 일자 (Format: YYYYMMDD)
+        headline   (str)   : 뉴스 헤드라인
+        sentiment  (float) : 뉴스 감정도
+        
+        [Returns]
+        int : 해당 뉴스에 부여된 고유번호
+        """
         
         try:
-            pass # This logic not implemented yet
+            data = {
+                'isin_code'  : isin_code,
+                'write_date' : write_date,
+                'headline'   : headline,
+                'sentiment'  : sentiment
+            }
+
+            self.insert_item(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=data)
+            return self.find_item(table='news_info', column='news_id', condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{write_date}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{headline}' AS {TYPE_news_info['headline']})")[0][0]
 
         except Exception as err_msg:
             print(f"[ERROR] set_news Error: {err_msg}")
@@ -569,3 +597,6 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] set_new_member Error: {err_msg}")
             return False
+
+pgdb = PostgresHandler(user='byeong_heon', password='kbitacademy')
+print(pgdb.set_news(isin_code=pgdb.get_isin_code('005930'),write_date='20221010', headline='이재용 구속, 어쩌나...?', sentiment=0.9876543210))
