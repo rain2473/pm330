@@ -208,7 +208,7 @@ class PostgresHandler():
         except Exception as err_msg :
             print(f"[ERROR] Insert Error: {err_msg}") 
     
-    def find_item(self, table:str=None, column='ALL', condition:str=None):
+    def find_item(self, table:str=None, columns='ALL', condition:str=None):
 
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
@@ -421,7 +421,7 @@ class PostgresHandler():
 
         try:
             # Query
-            result = self.find_item(table='basic_stock_info', column='isin_code', condition=f"short_isin_code = CAST('{short_isin_code}' AS varchar)")
+            result = self.find_item(table='basic_stock_info', columns='isin_code', condition=f"short_isin_code = CAST('{short_isin_code}' AS varchar)")
 
             return result[0][0]
 
@@ -441,7 +441,7 @@ class PostgresHandler():
 
         try:
             # Query
-            result = self.find_item(table='basic_stock_info', column='short_isin_code', condition=f"isin_code = CAST('{isin_code}' AS varchar)")
+            result = self.find_item(table='basic_stock_info', columns='short_isin_code', condition=f"isin_code = CAST('{isin_code}' AS varchar)")
 
             return result[0][0]
 
@@ -463,7 +463,7 @@ class PostgresHandler():
 
         try:
             # Query
-            result = self.find_item(table='price_info', column=['base_date', 'isin_code', 'close_price'], condition=f"isin_code = CAST('{isin_code}' AS varchar) AND CAST('{start_date}' AS date) <= base_date AND base_date <= CAST('{end_date}' AS date)")
+            result = self.find_item(table='price_info', columns=['base_date', 'isin_code', 'close_price'], condition=f"isin_code = CAST('{isin_code}' AS varchar) AND CAST('{start_date}' AS date) <= base_date AND base_date <= CAST('{end_date}' AS date)")
 
             # Parsing
             rows = []
@@ -505,7 +505,7 @@ class PostgresHandler():
             }
 
             self.insert_item(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=data)
-            return self.find_item(table='news_info', column='news_id', condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{write_date}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{headline}' AS {TYPE_news_info['headline']})")[0][0]
+            return self.find_item(table='news_info', columns='news_id', condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{write_date}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{headline}' AS {TYPE_news_info['headline']})")[0][0]
 
         except Exception as err_msg:
             print(f"[ERROR] set_news Error: {err_msg}")
@@ -524,9 +524,31 @@ class PostgresHandler():
             sentiment  (float) : 뉴스 감정도
         
         [Returns]
-        list : 해당 뉴스에 부여된 고유번호들이 담긴 리스트
+        int : 가장 마지막에 저장된 뉴스에 부여된 고유번호
         """
-        pass
+        
+        try:
+
+            multiple_news = list()
+            last_news = dict()
+            for news in news_list:
+                data = dict()
+                data['isin_code'] = news[0]
+                data['write_date'] = news[1]
+                data['headline'] = news[2]
+                data['sentiment'] = news[3]
+                multiple_news.append(data)
+
+                last_news['isin_code'] = news[0]
+                last_news['write_date'] = news[1]
+                last_news['headline'] = news[2]
+                last_news['sentiment'] = news[3]
+
+            self.insert_items(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=multiple_news)
+            return self.find_item(table='news_info', columns='news_id', condition=f"isin_code = CAST('{last_news['isin_code']}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{last_news['write_date']}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{last_news['headline']}' AS {TYPE_news_info['headline']})")[0][0]
+
+        except Exception as err_msg:
+            print(f"[ERROR] set_multiple_news Error: {err_msg}")
 
     def set_new_member(self, member_id:str, member_pw:str, member_email:str):
         """
