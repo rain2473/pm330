@@ -526,20 +526,6 @@ class PostgresHandler():
         [Returns]
         list : 해당 뉴스에 부여된 고유번호들이 담긴 리스트
         """
-
-        # try:
-        #     data = {
-        #         'isin_code'  : isin_code,
-        #         'write_date' : write_date,
-        #         'headline'   : headline,
-        #         'sentiment'  : sentiment
-        #     }
-
-        #     self.insert_items((table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=data)
-        #     return self.find_item(table='news_info', column='news_id', condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{write_date}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{headline}' AS {TYPE_news_info['headline']})")[0][0]
-
-        # except Exception as err_msg:
-        #     print(f"[ERROR] set_multiple_news Error: {err_msg}")
         pass
 
     def set_new_member(self, member_id:str, member_pw:str, member_email:str):
@@ -558,19 +544,19 @@ class PostgresHandler():
 
         try:
             # Duplicates Check
-            if len(self.find_item(table='member_info', condition=f"member_id = CAST({member_id} AS {TYPE_member_info['member_id']})")) > 0: # 해당 아이디가 이미 존재함
+            if len(self.find_item(table='member_info', condition=f"member_id = CAST('{member_id}' AS {TYPE_member_info['member_id']})")) > 0: # 해당 아이디가 이미 존재함
                 return False
             
             # Parameter Setting
             columns = list(TYPE_member_info.keys())
-            data = list(member_id, member_pw, member_email)
+            data = [member_id, member_pw, member_email]
             signup_data = dict()
-
+            
             for column, value in zip(columns, data):
                 signup_data[column] = value
 
             # Query
-            self.insert_item(table='member_info', column=columns, data=signup_data)
+            self.insert_item(table='member_info', columns=columns, data=signup_data)
 
         except Exception as err_msg:
             print(f"[ERROR] set_new_member Error: {err_msg}")
