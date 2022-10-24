@@ -9,7 +9,6 @@
 # Required Modules
 import pandas   as pd
 import numpy    as np
-import yfinance as yf
 
 from pypfopt.expected_returns    import ema_historical_return
 from pypfopt.risk_models         import exp_cov
@@ -24,7 +23,7 @@ from sklearn.preprocessing       import minmax_scale
 # 종가 데이터 변환 
 def convert_to_df():
     """
-    데이터베이스로부터 받아온 종목과 각 종목의 날짜별 종가를 데이터프레임 형식으로 반화한다.
+    데이터베이스로부터 받아온 종목과 각 종목의 날짜별 종가를 데이터프레임 형식으로 반환한다.
     [Parameters]
     [Returns]
     DataFrame : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
@@ -36,7 +35,7 @@ def convert_to_df():
 # 회원 포트폴리오 데이터프레임으로 변환
 def convert_to_my_pf():
     """
-    데이터베이스로부터 받아온 회원이 보유한 종목수와 평균단가를 이용하여
+    데이터베이스로부터 받아온 회원이 보유한 종목수와 전일종가를 이용하여
     종목별 비중의 퍼센트값과 종목별 종가, 시드머니 총액을 반환한다.
     [Parameters]
     [Returns]
@@ -136,14 +135,14 @@ def recommend_stocks(allocation, stocks_close, stocks_close_all):
     stocks_close     (DataFrame) : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
     stocks_close_all (DataFrame) : 모든 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
     [Returns]
-    list : 추천하는 다섯개의 종목
+    list      : 추천하는 다섯개의 종목명(str)
+    DataFrame : 다섯개 종목에 대한 종가
     """
     stocks = list(allocation.keys())                                               # 최적 포트폴리오에 포함될 종목들의 이름
     weights = list(allocation.values())                                            # 최적 포트폴리오에 포함되어 매수한 종목들의 주식 수
-    stocks_name = list(stocks_close.columns)                                       # 종가데이터를 가지고 있는 종목들의 종목 이름
     stocks_close['pf_total_price'] = 0                                             # 최적 포트폴리오의 가격 변동을 할당하기 위한 칼럼 0으로 초기화 및 추가
     for idx, stock_name in enumerate(stocks):                                      # 종목들의 종가에 비중을 곱하여 합한 것을 포트폴리오의 종가로 설정
-        stocks_close['pf_total_price'] += stocks_close[columns] * weights[idx]
+        stocks_close['pf_total_price'] += stocks_close[stock_name] * weights[idx]
         
     pf_close = stocks_close['pf_total_price'].reset_index().dropna()               # 포트폴리오의 종가만 따로 할당
     stocks_close_all = stocks_close_all.reset_index().dropna()                     # 포트폴리오에 편입할 종목을 찾아내기 위해 모든 주식들의 종가데이터를 정의
@@ -151,8 +150,9 @@ def recommend_stocks(allocation, stocks_close, stocks_close_all):
     pf_cor = pd.concat([pf_close, stocks_close_all], axis =1)                      # 포트폴리오의 종가와 다른 모든 종목들의 종가를 병합
     recommend = pf_cor.corr()[['pf_total_price']].sort_values(by='pf_total_price') # 병합된 데이터에서 포트폴리오 종가에 대한 상관계수를 계산하고 상관계수별로 정렬
     rec_stocks = list(recommend.index[0:5])                                        # 상관계수가 가장 낮은 5개의 종목을 rec_stock 변수에 할당
-    
-    return rec_stocks
+    cor_close = pf_cor[rec_stocks]
+
+    return rec_stocks, cor_close
 
 def get_drift(stocks_close):
     """
