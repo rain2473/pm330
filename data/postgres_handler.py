@@ -438,7 +438,35 @@ class PostgresHandler():
             print(f"[ERROR] get_isin_code Error: {err_msg}")
 
     def get_isin_code_by_item_name(self, item_name:str):
+        """
+        종목명에 해당하는 ISIN Code와 종목명을 담은 리스트를 반환한다.
 
+        [Parameters]
+        item_name (str) : 종목명
+
+        [Returns]
+        list : ISIN Code와 종목명을 담은 리스트 (list of dict)
+            isin_code : 국제 증권 식별 번호 (12자리)
+            item_name : 종목명
+        """
+
+        try:
+            # Query
+            result = self.find_item(table='basic_stock_info', columns=['isin_code', 'item_name'], condition=f"item_name LIKE CAST('%{item_name}%' AS {TYPE_basic_stock_info['item_name']})")
+
+            # Parsing
+            rows = list()
+            for row in result:
+                raw_string = row[0][1:-1]
+                data = dict()
+                data['isin_code'] = raw_string.split(sep=',')[0]
+                data['item_name'] = raw_string.split(sep=',')[1]
+                rows.append(data)
+
+            return rows
+
+        except Exception as err_msg:
+            print(f"[ERROR] get_isin_code_by_item_name Error: {err_msg}")
 
     def get_short_isin_code(self, isin_code:str):
         """
