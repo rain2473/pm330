@@ -1,0 +1,68 @@
+{% extends 'pybo/base.html' %}
+
+{% block content %}
+<div class="container px-4 px-lg-5 h-100" style="margin-top: 5.5rem">
+    <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
+    <h1 class="font-weight-bold" style="color: #60584c;">종목 수정</h1>
+    <div class="col-lg-8 align-self-baseline" style="width: 30%">
+        <form method="post">
+            {% csrf_token %}
+             <!-- 오류표시 Start -->
+            {% if form.errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for field in form %}
+                {% if field.errors %}
+                <div>
+                    <strong>{{ field.label }}</strong>
+                    {{ field.errors }}
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <!-- 오류표시 End -->
+            <div class="mb-3" style="display: flex; justify-content: flex-start;">
+                <label style="height: 3rem; margin-right: 2rem">
+                    <span for="subject"  style="color: #60584c;">매수</span>
+                    <input type="radio"  name="buy_sell" id="buy"
+                        value="{{ form.buy.value|default_if_none:'' }}">
+                </label>
+                <label>
+                    <span for="subject"  style="color: #60584c;">매도</span>
+                    <input type="radio"  name="buy_sell" id="sell"
+                        value="{{ form.sell.value|default_if_none:'' }}">
+                </label>
+            </div>
+            <div class="mb-3">
+                <label for="subject" class="form-label" style="color: #60584c;">종목</label>
+                <input type="text" class="form-control" name="subject" id="subject"
+                       value="{{ form.subject.value|default_if_none:'' }}">
+            </div>
+            <div class="mb-3">
+                <label for="subject" class="form-label" style="color: #60584c;">현재가</label>
+                <input type="number" class="form-control" name="now_price" id="now_price"
+                       value="{{ form.now_price.value|default_if_none:'' }}">
+            </div>
+            <div class="mb-3">
+                <label for="subject" class="form-label" style="color: #60584c;">평단가</label>
+                <input type="number" class="form-control" name="avg_price" id="avg_price"
+                       value="{{ form.avg_price.value|default_if_none:'' }}">
+            </div>
+            <div class="mb-3">
+                <label for="subject" class="form-label" style="color: #60584c;">수량</label>
+                <input type="number" class="form-control" name="quantity" id="quantity"
+                       value="{{ form.quantity.value|default_if_none:'' }}">
+            </div>
+            <div class="mb-3">
+                <label for="subject" class="form-label" style="color: #60584c;">매수날짜</label>
+                <input type="date" class="form-control" name="create_date" id="create_date"
+                       value="{{ form.create_date.value|default_if_none:'' }}">
+            </div>
+            <button type="submit" class="btn btn-primary btn-xl"
+                style="padding: 0.5rem 1rem; font-size: 1.2rem; color : #60584C">저장하기
+            </button>
+        </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

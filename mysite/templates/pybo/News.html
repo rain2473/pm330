@@ -4,79 +4,33 @@
 {% block content %}
 <div class="container px-4 px-lg-5 h-100" style="margin-top: 5.5rem">
     <div class="container my_border pt-5">
-        <h1 style="text-align:center;color:#60584c;" class="font-weight-bold">삼성전자</h1>
+        <h1 style="text-align:center;color:#60584c;" class="font-weight-bold">{{stock_name}}</h1>
         <hr class="divider" />
     </div>
     <div style="padding:3rem; overflow-y:scroll; height: 70%;" class="row">
         <div class="align-self-baseline align-items-justify">
             <table style= "width:100%">
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;">신세계인터내셔날, 2Q 사상 최대 실적…내년도 견조 -메리츠</td>
-                <td class="col-2" style="text-align: center;color:#da1313">호재</td>
-                <td class="col-2" style="text-align: center; color:#60584c;">90%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;">메리츠화재, 인공지능 기반 대고객 ‘AI 음성봇’ 서비스 개시</td>
-                <td class="col-2" style="text-align: center;color:#da1313">호재</td>
-                <td class="col-2" style="text-align: center; color:#60584c;">70%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;"> "클리오, 2분기 호실적 달성…""향후 외형 성장 기대""-메리츠" </td>
-                <td class="col-2" style="text-align: center;color:#0f1e8e">악재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">65%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;"> ‘저평가 보고서’ 등장에 메리츠화재 7% 급등 [마감시황]</td>
-                <td class="col-2" style="text-align: center;color:#da1313">호재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">55%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;"> 제일기획, 상반기 최대 실적 찍고 하반기에도 안정적 흐름-메리츠</td>
-                <td class="col-2" style="text-align: center;color:#0f1e8e">악재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">86%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;">한섬, 1Q 호실적 올해 내내 이어진다…목표가↑-메리츠</td>
-                <td class="col-2" style="text-align: center;color:#0f1e8e">악재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">32%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;">증권업 불황 이겨낸 메리츠證, '리스크 관리' 통했</td>
-                <td class="col-2" style="text-align: center;color:#da1313">호재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">25%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;">  '남들과 다르게' 메리츠 최희문號, 나홀로 웃었다</td>
-                <td class="col-2" style="text-align: center;color:#0f1e8e">악재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">61%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;"> 'IB 명가' 메리츠證, 영업익 3천억 첫 돌파</td>
-                <td class="col-2" style="text-align: center;color:#0f1e8e">악재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">72%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;"> 한국금융지주, IB·트레이딩 성과에 1분기 호실적-메리츠</td>
-                <td class="col-2" style="text-align: center;color:#da1313">호재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">83%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;">  현대제철, 1Q 깜짝실적…실적 개선 자신감 명확해져 -메리츠</td>
-                <td class="col-2" style="text-align: center;color:#0f1e8e">악재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">91%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;">기아, 반도체 부족 역설적 수혜…역대 최대 실적 전망-메리츠</td>
-                <td class="col-2" style="text-align: center;color:#0f1e8e">악재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">32%</td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
-                <td class="col-8" style="text-align: center; color:#60584c;">신세계인터내셔날, 2Q 사상 최대 실적…내년도 견조 -메리츠</td>
-                <td class="col-2" style="text-align: center;color:#da1313">호재</td>
-                <td class="col-2" style="text-align: center;color:#60584c;">30%</td>
-            </tr>
-         
-            
+                {% for result in result_dict %}
+                    {% if result.determinant == '호재' %}
+                        <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
+                            <td class="col-8" style="text-align: center; color:#60584c;">{{ result.headline }}</td>
+                            <td class="determinant col-2" style="text-align: center; color:#ff0000;">{{ result.determinant }}</td>
+                            <td class="col-2" style="text-align: center; color:#60584c;">{{ result.sentiment }}%</td>
+                        </tr>
+                    {% elif result.determinant == '악재' %}
+                        <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
+                            <td class="col-8" style="text-align: center; color:#60584c;">{{ result.headline }}</td>
+                            <td class="determinant col-2" style="text-align: center; color:#0000ff;">{{ result.determinant }}</td>
+                            <td class="col-2" style="text-align: center; color:#60584c;">{{ result.sentiment }}%</td>
+                        </tr>
+                    {% else %}
+                        <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
+                            <td class="col-8" style="text-align: center; color:#60584c;">{{ result.headline }}</td>
+                            <td class="determinant col-2" style="text-align: center; color:#60584c;">{{ result.determinant }}</td>
+                            <td class="col-2" style="text-align: center; color:#60584c;">{{ result.sentiment }}%</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
             </table>       
         </div>
     </div>

@@ -15,7 +15,12 @@ from plotly.offline                                import plot
 from selenium.webdriver.common.keys                 import Keys
 from selenium.webdriver.common.action_chains        import ActionChains
 from plotly                                         import express         as px
-
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from data import postgres_handler as pg
+from data import api_handler      as api
+from data import data_manipulator as dm
+from data import conn_config as con
 
 # Function Declaration
 def copy_page():

@@ -20,13 +20,22 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/SimpleLightbox/2.1.0/simpleLightbox.min.css" rel="stylesheet" />
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+        <meta http-equiv="refresh" content="0.1; url={% url 'pybo:Mypage' %}">
     </head>
     <body>
         
         <!-- 네비게이션바 -->
         {% include "pybo/navbar.html" %}
-        {% block content %}
-        {% endblock %}
+<div class="container px-4 px-lg-5 h-100" style="margin-top: 3rem">
+    <div class="row gx-4 gx-lg-5 h-100 justify-content-center text-center">
+        <div class="col-lg-8 align-self-end">
+            <h1 class="font-weight-bold" style="color: #60584c;">정상적으로 삭제되었습니다!</h1>
+            <hr class="divider" />
+        </div>
+            <p>3초 후 자동으로 마이페이지에 이동합니다.</p>
+        </div>
+    </div>
+</div>
         <!-- Footer-->
         <footer class="py-5" style="--bs-bg-opacity: 1;  background-color: #60584C;">
             <div class="container px-4 px-lg-5">
