@@ -3037,23 +3037,23 @@ textarea.form-control-lg {
 }
 
 .btn-primary {
-  color: #60584C;
+  color: #60584c ;
   background-color: #FFBC00;
   border-color: #FFBC00;
 }
 .btn-primary:hover {
-  color: #60584C;
+  color: #60584c;
   background-color: #FFB107;
   border-color: #FFB107;
 }
 .btn-check:focus + .btn-primary, .btn-primary:focus {
-  color: #60584C;
+  color: #60584c;
   background-color: #FFB107;
   border-color: #FFB107;
   box-shadow: 0 0 0 0.25rem rgba(246, 122, 88, 0.5);
 }
 .btn-check:checked + .btn-primary, .btn-check:active + .btn-primary, .btn-primary:active, .btn-primary.active, .show > .btn-primary.dropdown-toggle {
-  color: #60584C;
+  color: #60584c;
   background-color: #FFB107;
   border-color: #FFB107;
 }
@@ -3061,29 +3061,29 @@ textarea.form-control-lg {
   box-shadow: 0 0 0 0.25rem rgba(246, 122, 88, 0.5);
 }
 .btn-primary:disabled, .btn-primary.disabled {
-  color: #60584C;
+  color: #60584c;
   background-color: #FFB107;
   border-color: #FFB107;
 }
 
 .btn-secondary {
-  color: #60584C;
+  color: #60584c;
   background-color: #6c757d;
   border-color: #6c757d;
 }
 .btn-secondary:hover {
-  color: #60584C;
+  color: #60584c;
   background-color: #5c636a;
   border-color: #565e64;
 }
 .btn-check:focus + .btn-secondary, .btn-secondary:focus {
-  color: #60584C;
+  color: #60584c;
   background-color: #5c636a;
   border-color: #565e64;
   box-shadow: 0 0 0 0.25rem rgba(130, 138, 145, 0.5);
 }
 .btn-check:checked + .btn-secondary, .btn-check:active + .btn-secondary, .btn-secondary:active, .btn-secondary.active, .show > .btn-secondary.dropdown-toggle {
-  color: #60584C;
+  color: #60584c;
   background-color: #565e64;
   border-color: #51585e;
 }
@@ -3091,29 +3091,29 @@ textarea.form-control-lg {
   box-shadow: 0 0 0 0.25rem rgba(130, 138, 145, 0.5);
 }
 .btn-secondary:disabled, .btn-secondary.disabled {
-  color: #60584C;
+  color: #60584c;
   background-color: #6c757d;
   border-color: #6c757d;
 }
 
 .btn-success {
-  color: #60584C;
+  color: #60584c;
   background-color: #198754;
   border-color: #198754;
 }
 .btn-success:hover {
-  color: #60584C;
+  color: #60584c;
   background-color: #157347;
   border-color: #146c43;
 }
 .btn-check:focus + .btn-success, .btn-success:focus {
-  color: #60584C;
+  color: #60584c;
   background-color: #157347;
   border-color: #146c43;
   box-shadow: 0 0 0 0.25rem rgba(60, 153, 110, 0.5);
 }
 .btn-check:checked + .btn-success, .btn-check:active + .btn-success, .btn-success:active, .btn-success.active, .show > .btn-success.dropdown-toggle {
-  color: #60584C;
+  color: #60584c;
   background-color: #146c43;
   border-color: #13653f;
 }
@@ -11312,7 +11312,7 @@ textarea.form-control-lg {
 html {
   height: 100%;
   scroll-padding-top: calc(4.5rem - 1px);
-  background: linear-gradient(to bottom, rgba(96, 88, 76, 0.7) 0%, rgba(96, 88, 76, 0.7) 150%), url("../assets/img/bg-masthead.jpg");
+  background: #d9d9d9;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: scroll;
@@ -11322,7 +11322,7 @@ html {
 body {
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(96, 88, 76, 0.7) 0%, rgba(96, 88, 76, 0.7) 150%), url("../assets/img/bg-masthead.jpg");
+  background: #d9d9d9;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: scroll;
@@ -11330,7 +11330,7 @@ body {
 }
 
 .page-section {
-  padding: 8rem 0;
+  padding: 8rem ;
 }
 
 .text-white-75 {
@@ -11360,7 +11360,7 @@ hr.divider-light {
 
 #mainNav {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  background-color: #d9d9d9;
+  background-color: #60584c;
   transition: background-color 0.2s ease;
 }
 #mainNav .navbar-brand {
@@ -11390,21 +11390,21 @@ hr.divider-light {
     color: rgba(255, 255, 255, 0.7);
   }
   #mainNav .navbar-brand:hover {
-    color: #d9d9d9;
+    color: #60584c;
   }
   #mainNav .navbar-nav .nav-item .nav-link {
-    color: #d9d9d9;
+    color: #60584c;
     padding: 0 1rem;
   }
   #mainNav .navbar-nav .nav-item .nav-link:hover {
-    color: #d9d9d9;
+    color: #60584c;
   }
   #mainNav .navbar-nav .nav-item:last-child .nav-link {
     padding-right: 0;
   }
   #mainNav.navbar-shrink {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    background-color: #d9d9d9;
+    background-color: #60584c;
   }
   #mainNav.navbar-shrink .navbar-brand {
     color: #212529;

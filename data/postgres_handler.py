@@ -1,18 +1,13 @@
-
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
 # Date    : 2022-10-24(월)
 
-
-
 # Required Modules
 import psycopg2    # Command to install: "pip install psycopg2-binary"
 
-import conn_config      as config
-import api_handler      as api
-import data_manipulator as dm
-
-
+from . import conn_config      as config
+from . import api_handler      as api
+from . import data_manipulator as dm
 
 # Configurations (Database Schema)
 TYPE_basic_stock_info = {

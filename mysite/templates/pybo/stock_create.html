@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container px-4 px-lg-5 h-100" style="margin-top: 5.5rem">
     <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center">
-    <h1 class="text-white font-weight-bold">종목 추가</h1>
+    <h1 class="font-weight-bold" style="color: #60584c;">종목 추가</h1>
     <div class="col-lg-8 align-self-baseline" style="width: 30%">
         <form method="post">
             {% csrf_token %}
@@ -22,27 +22,27 @@
             {% endif %}
             <!-- 오류표시 End -->
             <div class="mb-3">
-                <label for="subject" class="form-label">종목</label>
+                <label for="subject" class="form-label" style="color: #60584c;">종목</label>
                 <input type="text" class="form-control" name="subject" id="subject"
                        value="{{ form.subject.value|default_if_none:'' }}">
             </div>
             <div class="mb-3">
-                <label for="subject" class="form-label">현재가</label>
+                <label for="subject" class="form-label" style="color: #60584c;">현재가</label>
                 <input type="number" class="form-control" name="now_price" id="now_price"
                        value="{{ form.now_price.value|default_if_none:'' }}">
             </div>
             <div class="mb-3">
-                <label for="subject" class="form-label">평단가</label>
+                <label for="subject" class="form-label" style="color: #60584c;">평단가</label>
                 <input type="number" class="form-control" name="avg_price" id="avg_price"
                        value="{{ form.avg_price.value|default_if_none:'' }}">
             </div>
             <div class="mb-3">
-                <label for="subject" class="form-label">수량</label>
+                <label for="subject" class="form-label" style="color: #60584c;">수량</label>
                 <input type="number" class="form-control" name="quantity" id="quantity"
                        value="{{ form.quantity.value|default_if_none:'' }}">
             </div>
             <div class="mb-3">
-                <label for="subject" class="form-label">매수날짜</label>
+                <label for="subject" class="form-label" style="color: #60584c;">매수날짜</label>
                 <input type="date" class="form-control" name="create_date" id="create_date"
                        value="{{ form.create_date.value|default_if_none:'' }}">
             </div>

@@ -47,23 +47,23 @@ def get_last(stock_ticker):
 # ticker_list = stock.get_index_portfolio_deposit_file("1028")
 
 # 데이터 추출
-for tick in ticker_list:
-    news_data = pd.DataFrame()
-    try:
-        start, end = 1, get_last(tick)
-    except Exception as e:
-        print(e)
-        start, end = 1, 1
-    print(start, end)
-    now_page = start
-    while now_page <= end:
-        try:
-            news_data = pd.concat([news_data, get_data(tick, now_page)], ignore_index=True)
-            now_page += 1
-            time.sleep(2)
-        except Exception as e:
-            print(e)
+# for tick in ticker_list:
+#     news_data = pd.DataFrame()
+#     try:
+#         start, end = 1, get_last(tick)
+#     except Exception as e:
+#         print(e)
+#         start, end = 1, 1
+#     print(start, end)
+#     now_page = start
+#     while now_page <= end:
+#         try:
+#             news_data = pd.concat([news_data, get_data(tick, now_page)], ignore_index=True)
+#             now_page += 1
+#             time.sleep(2)
+#         except Exception as e:
+#             print(e)
 
-    # 종목 뉴스 검색 종료 후 저장
-    news_data.to_csv(f'./{tick}_{start}-{end}.csv')
-    display(news_data)
+#     # 종목 뉴스 검색 종료 후 저장
+#     news_data.to_csv(f'./{tick}_{start}-{end}.csv')
+#     print(news_data)

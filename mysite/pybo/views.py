@@ -7,16 +7,14 @@
 #     return HttpResponse("안녕하세요 pybo에 오신것을 환영합니다.")
 
 
-import imp
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .TreemapMaker import write_treemap_html as create
-from .plotmaker import myportfolio_plot_view as fig
-from .plotmaker import lstm_plot_view as lstm
+from. import TreemapMaker
+from . import plotmaker
 from .models import Stocks
 from .forms import StocksForm
 from django.shortcuts import render, redirect, get_object_or_404
-
 def index(request):
     return render(request, 'pybo/index.html')
 
@@ -34,13 +32,13 @@ def Mypage(request):
 
 @login_required(login_url='common:login')
 def Myportfolio(request): 
-    plot_div = fig()
+    plot_div = plotmaker.myportfolio_plot_view()
     return render(request, 'pybo/Myportfolio.html', 
                   context={'plot_div': plot_div})
 
 @login_required(login_url='common:login')
 def PortfolioFeedback(request): 
-    lstm_div = lstm()
+    lstm_div = plotmaker.lstm_plot_view()
     return render(request, 'pybo/PortfolioFeedback.html',
                     context={'lstm_div': lstm_div})
 
@@ -51,9 +49,16 @@ def News(request):
 def Login(request): 
     return render(request, 'common/login.html')
 
+def KospiReady(request): 
+    return render(request, 'pybo/KospiReady.html')
+
 def KospiMarketMap(request): 
-    create()
-    return render(request, 'pybo/KospiMarketMap.html')
+    fig_div, created_time = TreemapMaker.get_fig()
+    return render(request, 'pybo/KospiMarketMap.html',context={'fig_div': fig_div, "created_time" : created_time})
+
+def KospiMarketMap_new(request): 
+    fig_div = TreemapMaker.get_fig()
+    return HttpResponse(context={'fig_div': fig_div})
 
 def stock_create(request):
     if request.method == 'POST':

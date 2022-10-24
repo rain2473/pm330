@@ -22,6 +22,7 @@
         <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
     </head>
     <body>
+        
         <!-- 네비게이션바 -->
         {% include "pybo/navbar.html" %}
         {% block content %}
@@ -39,9 +40,9 @@
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>      
 
         <!-- Footer-->
-        <footer class="bg-light py-5">
+        <footer class="py-5" style="--bs-bg-opacity: 1;  background-color: #60584C;">
             <div class="container px-4 px-lg-5">
-                <div class="small text-center text-muted">
+                <div class="small text-center" style="color:#d9d9d9">
                     Copyright &copy; 2022 - 국민상사
                 </div>
             </div>

@@ -3,16 +3,19 @@
 # Date    : <2022-10-16>
 
 # Required Modules
+import time
+from symbol import import_from
 import pandas                                       as pd
 import numpy                                        as np
 import plotly.graph_objects                         as go
 from tkinter                                        import Tk
 from _tkinter                                       import TclError
 from selenium                                       import webdriver
-from pykrx                                          import stock
+from plotly.offline                                import plot
 from selenium.webdriver.common.keys                 import Keys
 from selenium.webdriver.common.action_chains        import ActionChains
 from plotly                                         import express         as px
+
 
 # Function Declaration
 def copy_page():
@@ -43,6 +46,11 @@ def copy_page():
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
     # 닫기
     driver.close()
+
+    # 작성 시간을 반환
+    tm = time.localtime(time.time())
+    created_time = time.strftime('%Y-%m-%d %I:%M:%S %p', tm)
+    return created_time
     
 def get_clipboard():
     '''
@@ -53,7 +61,7 @@ def get_clipboard():
         str : 클립보드에 저장된 전종목시세 정보
     '''
     # 페이지 복사 함수 실행
-    copy_page()
+    created_time = copy_page()
     # tkinter 모듈의 Tk() 호출
     root = Tk()
     # 외부 윈도우 창을 화면에서 제거
@@ -67,7 +75,7 @@ def get_clipboard():
     except TclError as e:
         print('클립보드 데이터가 비어있음')
     # 클립보드를 문자열로 반환함.
-    return result
+    return result, created_time
 
 def make_list():
     '''
@@ -77,8 +85,10 @@ def make_list():
     [Returns]
         list : 전종목 시세
     '''
+
+    crawling_data, created_time = get_clipboard()
     # 문자열을 list를 변환
-    crawling_data = get_clipboard().split('\n')
+    crawling_data = crawling_data.split('\n')
     # 불필요한 정보를 제거
     crawling_data = crawling_data[23:5603]
     # 섹터 이름을 저장한 list를 선언
@@ -119,7 +129,7 @@ def make_list():
             # 정보를 해당 종목 list에 저장
             one_row.append(element)
     # 전종목 시세 리스트를 반환
-    return stock_list
+    return stock_list,created_time
 
 def make_df():
     '''
@@ -133,8 +143,9 @@ def make_df():
     [Returns]
         pandas DataFrame : 전종목 시세
     '''
+    stock_df, created_time = make_list()
     # DF를 생성, columns명 지정
-    stock_df = pd.DataFrame(make_list(), columns=['종목','현재가','등락','등락율','등락율(%)','섹터'])
+    stock_df = pd.DataFrame(stock_df, columns=['종목','현재가','등락','등락율','등락율(%)','섹터'])
     # columns 순서를 변경
     stock_df = stock_df[['종목','섹터','현재가','등락','등락율','등락율(%)']]
     # 등락율과 등락가, 현재가의 data type을 실수화, 정수화 함.
@@ -152,7 +163,7 @@ def make_df():
     # catagoraze한 등락율을 등락에 저장.
     stock_df['등락'] = np.select(condition,choices,default='0')
     # 전종목 시세의 DF 반환
-    return stock_df
+    return stock_df, created_time
 
 def make_mktcap_df():
     '''
@@ -175,20 +186,21 @@ def make_data():
         pandas DataFrame : 최종 전종목시세 정보
     '''
     # 두 DF를 inner 방식으로 합침.
-    stock_df = pd.merge(make_df(),make_mktcap_df(),on='종목',how='inner')
+    maken_df, created_time = make_df()
+    stock_df = pd.merge(maken_df,make_mktcap_df(),on='종목',how='inner')
     # 최종 data를 DF로 반환함.
-    return stock_df
+    return stock_df, created_time
 
-def get_html():
+def get_fig():
     '''
-    DF를 이용하여 treemap 그래프를 html 파일로 변환하여 그 코드를 문자열로 저장하는 함수이다.
+    DF를 이용하여 treemap 그래프를 html에 끼워넣는 저장하는 함수이다.
     [Parameters]
         없음
     [Returns]
-        str : treemap 그래프를 나타내는 html 파일의 코드
+        str : html 파일에 삽입될 treemap 그래프를 나타내는 코드
     '''
     # 최종 data 생성
-    data = make_data()
+    data, created_time = make_data()
     # 트리맵 그래프 그림.
     fig = px.treemap(
     data, 
@@ -232,27 +244,13 @@ def get_html():
         go.Layout(paper_bgcolor='#d9d9d9'),
         margin={"r":0,"t":0,"l":0,"b":0}
     )
-    # 생성된 그래프를 html로 변환하여 html_str에 저장(문자열)
-    html_str = fig.to_html()
-    # html의 불필요한 부분을 구현에 필요한 코드로 변환
-    html_str = html_str.replace('<html>\n<head><meta charset="utf-8" /></head>\n<body>','{% extends "pybo/base.html" %}\n{% load static %}\n<body id="page-top">\n    {% block content %}\n    <div class="container px-4 px-lg-5 h-100" style="margin-top : 5.5rem; padding-top : 3.5rem">')
-    html_str = html_str.replace('\n</body>\n</html>', '<img src="https://postfiles.pstatic.net/MjAyMjEwMTdfMTA5/MDAxNjY1OTkyMzk4NzQ3.C3OGTkrIwUZJ0-AkCmIParlPuvBc3sWToTPVZW9Inysg.tWV6v1WpDDBtQ7gBdrg5GVYMRG8SDYx_kklHQvthXokg.PNG.rain2473/%EC%83%89%EC%83%81.png?type=w773" style="float: right;  width:600;" alt="색상표"></div>\n    {% endblock content %}\n</body>')
-    # html 코드를 문자열로 반환
-    return html_str
+    fig_div = plot( fig, output_type='div')
 
-def write_treemap_html():
-    '''
-    위에서 저장한 html 코드를 이용하여 treemap 그래프를 보여주는 페이지를 html 파일로 작성하는 함수이다.
-    [Parameters]
-        없음
-    [Returns]
-        html file : treemap 그래프를 보여주는 페이지의 html 파일
-    '''
-    # treemap 그래프를 보여주는 페이지의 코드를 변수에 저장
-    html_str = get_html()
     # html 파일을 생성함.
-    file = open('templates\pybo\KospiMarketMap.html','w',encoding='UTF-8')
+    file = open('templates\pybo\KospiInsert.html','w',encoding='UTF-8')
     # html 파일을 작성함.
-    file.write(html_str)
+    file.write(fig_div)
     # html 파일을 종료함.
     file.close()
+    
+    return fig_div, created_time
