@@ -1,7 +1,7 @@
 
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-10-21(금)
+# Date    : 2022-10-24(월)
 
 
 
@@ -208,7 +208,7 @@ class PostgresHandler():
         except Exception as err_msg :
             print(f"[ERROR] Insert Error: {err_msg}") 
     
-    def find_item(self, table:str=None, columns='ALL', condition:str=None):
+    def find_item(self, table:str=None, columns='ALL', condition:str=None, order_by:str=None, asc:bool=True):
 
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
@@ -222,10 +222,19 @@ class PostgresHandler():
             pass
             
         if condition is None:
-            sql = f""" SELECT {columns} FROM {table} ;"""
+            sql = f""" SELECT {columns} FROM {table} """
         else:
-            sql = f""" SELECT {columns} FROM {table} WHERE {condition} ;"""
+            sql = f""" SELECT {columns} FROM {table} WHERE {condition} """
 
+        if order_by is not None:
+            sql += f""" ORDER BY {order_by} """
+
+            if asc:
+                sql += f"""ASC"""
+            else:
+                sql += f"""DESC"""
+
+        sql += ';'
         print("SQL: ", sql)
 
         try:
@@ -463,13 +472,19 @@ class PostgresHandler():
 
         try:
             # Query
-            result = self.find_item(table='price_info', columns=['base_date', 'isin_code', 'close_price'], condition=f"isin_code = CAST('{isin_code}' AS varchar) AND CAST('{start_date}' AS date) <= base_date AND base_date <= CAST('{end_date}' AS date)")
+            result = self.find_item(
+                table='price_info',
+                columns=['base_date', 'isin_code', 'close_price'],
+                condition=f"isin_code = CAST('{isin_code}' AS varchar) AND CAST('{start_date}' AS date) <= base_date AND base_date <= CAST('{end_date}' AS date)",
+                order_by='base_date',
+                asc=True
+            )
 
             # Parsing
-            rows = []
-            data = {}
+            rows = list()
             for row in result:
                 raw_string = row[0][1:-1]
+                data = dict()
                 data['base_date'] = raw_string.split(sep=',')[0]
                 data['isin_code'] = raw_string.split(sep=',')[1]
                 data['close_price'] = int(raw_string.split(sep=',')[2])
@@ -493,7 +508,7 @@ class PostgresHandler():
         sentiment  (float) : 뉴스 감정도
         
         [Returns]
-        int : 해당 뉴스에 부여된 고유번호
+        -
         """
         
         try:
@@ -505,7 +520,7 @@ class PostgresHandler():
             }
 
             self.insert_item(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=data)
-            return self.find_item(table='news_info', columns='news_id', condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{write_date}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{headline}' AS {TYPE_news_info['headline']})")[0][0]
+            # return self.find_item(table='news_info', columns='news_id', condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{write_date}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{headline}' AS {TYPE_news_info['headline']})")[0][0]
 
         except Exception as err_msg:
             print(f"[ERROR] set_news Error: {err_msg}")
@@ -524,7 +539,7 @@ class PostgresHandler():
             sentiment  (float) : 뉴스 감정도
         
         [Returns]
-        int : 가장 마지막에 저장된 뉴스에 부여된 고유번호
+        -
         """
         
         try:
@@ -545,7 +560,7 @@ class PostgresHandler():
                 last_news['sentiment'] = news[3]
 
             self.insert_items(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=multiple_news)
-            return self.find_item(table='news_info', columns='news_id', condition=f"isin_code = CAST('{last_news['isin_code']}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{last_news['write_date']}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{last_news['headline']}' AS {TYPE_news_info['headline']})")[0][0]
+            # return self.find_item(table='news_info', columns='news_id', condition=f"isin_code = CAST('{last_news['isin_code']}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{last_news['write_date']}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{last_news['headline']}' AS {TYPE_news_info['headline']})")[0][0]
 
         except Exception as err_msg:
             print(f"[ERROR] set_multiple_news Error: {err_msg}")
@@ -583,3 +598,6 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] set_new_member Error: {err_msg}")
             return False
+
+pgdb = PostgresHandler(user='byeong_heon', password='kbitacademy')
+print(pgdb.get_close_price(pgdb.get_isin_code('005930'),'20100101'))
