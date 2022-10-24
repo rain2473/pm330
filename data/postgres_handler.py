@@ -495,6 +495,48 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] get_close_price Error: {err_msg}")
 
+    def get_close_price_for_days(self, days:int=365):
+        """
+        금일 기준 days일 이전까지의 전 종목의 종가를 반환한다.
+
+        [Parameters]
+        days (int) : 종가를 조회할 기간 (일) (Default: 365일)
+        
+        [Returns]
+        list : 기준일자, ISIN Code, 종가들이 저장된 리스트 (list of dict)
+            base_date   : 기준일자
+            isin_code   : 국제 증권 식별 번호 (12자리)
+            close_price : 종가
+        """
+
+        start_date = dm.datetime.strftime(dm.datetime.now(dm.timezone('Asia/Seoul')) - dm.timedelta(days)  , "%Y%m%d")
+        end_date   = dm.YESTERDAY
+        
+        try:
+            # Query
+            result = self.find_item(
+                table='price_info',
+                columns=['base_date', 'isin_code', 'close_price'],
+                condition=f"CAST('{start_date}' AS date) <= base_date AND base_date <= CAST('{end_date}' AS date)",
+                order_by='base_date',
+                asc=True
+            )
+
+            # Parsing
+            rows = list()
+            for row in result:
+                raw_string = row[0][1:-1]
+                data = dict()
+                data['base_date'] = raw_string.split(sep=',')[0]
+                data['isin_code'] = raw_string.split(sep=',')[1]
+                data['close_price'] = int(raw_string.split(sep=',')[2])
+                rows.append(data)
+
+            return rows
+
+        except Exception as err_msg:
+            print(f"[ERROR] get_close_price_for_days Error: {err_msg}")
+
     def set_news(self, isin_code:str, write_date:str, headline:str, sentiment:float):
         """
         새로운 뉴스 기사를 데이터베이스에 저장한다.
