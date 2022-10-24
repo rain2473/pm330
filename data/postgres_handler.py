@@ -213,18 +213,18 @@ class PostgresHandler():
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
 
-        if column == 'ALL':
-            column = "*"
-        elif type(list()) == type(column):
-            column = ", ".join(column)
-            column = "(" + column + ")"
-        elif type(str()) == type(column):
+        if columns == 'ALL':
+            columns = "*"
+        elif type(list()) == type(columns):
+            columns = ", ".join(columns)
+            columns = "(" + columns + ")"
+        elif type(str()) == type(columns):
             pass
             
         if condition is None:
-            sql = f""" SELECT {column} FROM {table} ;"""
+            sql = f""" SELECT {columns} FROM {table} ;"""
         else:
-            sql = f""" SELECT {column} FROM {table} WHERE {condition} ;"""
+            sql = f""" SELECT {columns} FROM {table} WHERE {condition} ;"""
 
         print("SQL: ", sql)
 
