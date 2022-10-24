@@ -916,7 +916,20 @@ class PostgresHandler():
             condition = f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']})"
 
             # Query
-            return self.find_item(table='portfolio_transaction', columns='ALL', condition=condition)
+            result = self.find_item(table='portfolio_transaction', columns='ALL', condition=condition)
+
+            # Parsing
+            output = list()
+
+            for news in result:
+                data = dict()
+                data['member_id'] = news[0]
+                data['isin_code'] = news[1]
+                data['quantity'] = int(news[2])
+                data['break_even_price'] = float(news[3])
+                output.append(data)
+
+            return output
 
         except Exception as err_msg:
             print(f"[ERROR] get_portfolio_by_member_id Error: {err_msg}")
