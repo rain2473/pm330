@@ -598,6 +598,4 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] set_new_member Error: {err_msg}")
             return False
-
-pgdb = PostgresHandler(user='byeong_heon', password='kbitacademy')
-print(pgdb.get_close_price(pgdb.get_isin_code('005930'),'20100101'))
+            
