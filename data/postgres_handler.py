@@ -598,4 +598,41 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] set_new_member Error: {err_msg}")
             return False
-            
+
+    def get_news_by_isin_code(self, isin_code:str):
+        """
+        해당 종목의 뉴스 데이터를 불러온다.
+
+        [Parameters]
+        isin_code (str) : 국제 증권 식별 번호 (12자리)
+        
+        [Returns]
+        list : 해당 주식 종목에 연관된 뉴스 데이터들이 담긴 리스트 (list of dict)
+            isin_code  (str)   : 국제 증권 식별 번호 (12자리)
+            write_date (str)   : 뉴스 기사 작성 일자 (Format: YYYYMMDD)
+            headline   (str)   : 뉴스 헤드라인
+            sentiment  (float) : 뉴스 감정도
+        """
+
+        # Query
+        result = self.find_item(
+            table='news_info',
+            columns='ALL',
+            condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']})",
+            order_by='write_date',
+            asc=False
+        )
+
+        # Parsing
+        columns = list(TYPE_news_info.keys())
+        output = list()
+
+        for news in result:
+            data = dict()
+            data['isin_code'] = news[0]
+            data['write_date'] = news[1].strftime('%Y-%m-%d')
+            data['headline'] = news[2]
+            data['sentiment'] = float(news[3])
+            output.append(data)
+
+        return output
