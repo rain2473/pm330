@@ -685,6 +685,7 @@ class PostgresHandler():
         
         [Returns]
         True  : 데이터베이스에 중복된 ID가 존재하지 않아 저장에 성공한 경우
+
         False : 데이터베이스에 중복된 ID가 존재하여, 저장에 실패한 경우
         """
 
@@ -763,6 +764,7 @@ class PostgresHandler():
         [Returns]
         True  : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
                 갖고 있지 않은 상태에서 새롭게 입력하는 경우
+
         False : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
                 이미 기입력해놓은 경우
                 (이 경우, update_transaction() 메서드를 이용하여 '수정'해야 한다.)
@@ -808,6 +810,7 @@ class PostgresHandler():
         [Returns]
         True  : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
                 갖고 있는 상태인 경우
+
         False : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
                 갖고 있지 않은 경우
         """
@@ -849,6 +852,7 @@ class PostgresHandler():
         [Returns]
         True  : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
                 갖고 있는 상태인 경우
+
         False : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
                 갖고 있지 않은 경우
         """
@@ -877,4 +881,43 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] remove_transaction Error: {err_msg}")
             return False
-            
+    
+    def get_portfolio_by_member_id(self, member_id):
+        """
+        해당 회원의 포트폴리오 구성 정보를 반환한다.
+
+        [Parameters]
+        member_id (str) : 회원 ID
+
+        [Returns]
+        list : 해당 회원의 포트폴리오 구성 요소를 담은 리스트 (list of dict)
+            member_id        (str)   : 회원 ID
+            isin_code        (str)   : 국제 증권 식별 번호 (12자리)
+            break_even_price (float) : 수정할 평균 매수가
+            quantity         (int)   : 수정할 보유량
+
+        None  : 해당 회원의 포트폴리오가 비어있는 경우
+
+        False : 오류가 발생한 경우
+        """
+
+        try:
+            # Existence Check 
+            existence = self.find_item(
+                table='portfolio_transaction',
+                condition=f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']}) AND isin_code = CAST('{isin_code}' AS {TYPE_portfolio_transaction['isin_code']})"
+            )
+
+            if len(existence) == 0:
+                print(f"[WARNING] There is no any transaction this member: member_id: {member_id}")
+                return None
+
+            # Parameter Setting
+            condition = f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']})"
+
+            # Query
+            return self.find_item(table='portfolio_transaction', columns='ALL', condition=condition)
+
+        except Exception as err_msg:
+            print(f"[ERROR] get_portfolio_by_member_id Error: {err_msg}")
+            return False
