@@ -488,6 +488,26 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] get_short_isin_code Error: {err_msg}")
 
+    def get_item_name_by_isin_code(self, isin_code:str):
+        """
+        ISIN Code에 해당하는 종목명을 반환한다.
+
+        [Parameters]
+        isin_code (str) : 국제 증권 식별 번호 (12자리)
+
+        [Returns]
+        str  : 종목명
+        """
+
+        try:
+            # Query
+            result = self.find_item(table='basic_stock_info', columns='item_name', condition=f"isin_code = CAST('{isin_code}' AS {TYPE_basic_stock_info['isin_code']})")
+
+            return result[0][0]
+
+        except Exception as err_msg:
+            print(f"[ERROR] get_item_name_by_isin_code Error: {err_msg}")
+
     def get_close_price(self, isin_code:str, start_date:str='20000101', end_date:str=dm.YESTERDAY):
         """
         ISIN Code에 해당하는 종목의 종가를 조회한다.
@@ -709,3 +729,4 @@ class PostgresHandler():
             output.append(data)
 
         return output
+        
