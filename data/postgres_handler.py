@@ -14,7 +14,7 @@ import data_manipulator as dm
 
 
 
-# Configurations
+# Configurations (Database Schema)
 TYPE_basic_stock_info = {
     'isin_code'       : 'varchar',
     'short_isin_code' : 'varchar',
@@ -64,6 +64,13 @@ TYPE_price_info = {
     'volume'           : 'bigint',
 }
 
+TYPE_portfolio_transaction = {
+    'member_id'        : 'varchar',
+    'isin_code'        : 'varchar',
+    'quantity'         : 'integer',
+    'break_even_price' : 'double precision',
+}
+
 TYPE_world_index_info = {
 
 }
@@ -77,15 +84,21 @@ LIST_TABLE_NAME = [
     'member_info',
     'price_info',
     'news_info',
-    'financial_info'
+    'financial_info',
+    'portfolio_transaction',
+    'world_index_info',
+    'world_index_price',
 ]
 
 SCHEMA = {
-    'basic_stock_info' : TYPE_basic_stock_info,
-    'member_info'      : TYPE_member_info,
-    'price_info'       : TYPE_price_info,
-    'news_info'        : TYPE_news_info,
-    'financial_info'   : TYPE_financial_info,
+    'basic_stock_info'      : TYPE_basic_stock_info,
+    'member_info'           : TYPE_member_info,
+    'price_info'            : TYPE_price_info,
+    'news_info'             : TYPE_news_info,
+    'financial_info'        : TYPE_financial_info,
+    'portfolio_transaction' : TYPE_portfolio_transaction,
+    'world_index_info'      : TYPE_world_index_info,
+    'world_index_price'     : TYPE_world_index_price,
 }
 
 STR_TYPES  = ['varchar', 'text', 'char', 'date']
@@ -549,6 +562,7 @@ class PostgresHandler():
     def get_close_price_for_days(self, days:int=365):
         """
         금일 기준 days일 이전까지의 전 종목의 종가를 반환한다.
+        기준일자를 기준으로 오름차순으로 정렬하여 반환한다.
 
         [Parameters]
         days (int) : 종가를 조회할 기간 (일) (Default: 365일)
@@ -560,10 +574,11 @@ class PostgresHandler():
             close_price : 종가
         """
 
-        start_date = dm.datetime.strftime(dm.datetime.now(dm.timezone('Asia/Seoul')) - dm.timedelta(days)  , "%Y%m%d")
-        end_date   = dm.YESTERDAY
-        
         try:
+            # Parameter Setting
+            start_date = dm.datetime.strftime(dm.datetime.now(dm.timezone('Asia/Seoul')) - dm.timedelta(days)  , "%Y%m%d")
+            end_date   = dm.YESTERDAY
+        
             # Query
             result = self.find_item(
                 table='price_info',
@@ -605,6 +620,7 @@ class PostgresHandler():
         """
         
         try:
+            # Parameter Setting
             data = {
                 'isin_code'  : isin_code,
                 'write_date' : write_date,
@@ -636,7 +652,7 @@ class PostgresHandler():
         """
         
         try:
-
+            # Parameter Setting
             multiple_news = list()
             last_news = dict()
             for news in news_list:
@@ -652,8 +668,8 @@ class PostgresHandler():
                 last_news['headline'] = news[2]
                 last_news['sentiment'] = news[3]
 
+            # Query
             self.insert_items(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=multiple_news)
-            # return self.find_item(table='news_info', columns='news_id', condition=f"isin_code = CAST('{last_news['isin_code']}' AS {TYPE_news_info['isin_code']}) AND write_date = CAST('{last_news['write_date']}' AS {TYPE_news_info['write_date']}) AND headline = CAST('{last_news['headline']}' AS {TYPE_news_info['headline']})")[0][0]
 
         except Exception as err_msg:
             print(f"[ERROR] set_multiple_news Error: {err_msg}")
@@ -707,26 +723,158 @@ class PostgresHandler():
             sentiment  (float) : 뉴스 감정도
         """
 
-        # Query
-        result = self.find_item(
-            table='news_info',
-            columns='ALL',
-            condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']})",
-            order_by='write_date',
-            asc=False
-        )
+        try:
+            # Query
+            result = self.find_item(
+                table='news_info',
+                columns='ALL',
+                condition=f"isin_code = CAST('{isin_code}' AS {TYPE_news_info['isin_code']})",
+                order_by='write_date',
+                asc=False
+            )
 
-        # Parsing
-        columns = list(TYPE_news_info.keys())
-        output = list()
+            # Parsing
+            output = list()
 
-        for news in result:
-            data = dict()
-            data['isin_code'] = news[0]
-            data['write_date'] = news[1].strftime('%Y-%m-%d')
-            data['headline'] = news[2]
-            data['sentiment'] = float(news[3])
-            output.append(data)
+            for news in result:
+                data = dict()
+                data['isin_code'] = news[0]
+                data['write_date'] = news[1].strftime('%Y-%m-%d')
+                data['headline'] = news[2]
+                data['sentiment'] = float(news[3])
+                output.append(data)
 
-        return output
+            return output
+
+        except Exception as err_msg:
+            print(f"[ERROR] get_news_by_isin_code Error: {err_msg}")
+            return False
+
+    def add_transaction(self, member_id:str, isin_code:str, break_even_price:float, quantity:int):
+        """
+        해당 회원의 보유 주식 정보를 입력한다.
+
+        [Parameters]
+        member_id        (str)   : 회원 ID
+        isin_code        (str)   : 국제 증권 식별 번호 (12자리)
+        break_even_price (float) : 평균 매수가
+        quantity         (int)   : 보유량
+
+        [Returns]
+        True  : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
+                갖고 있지 않은 상태에서 새롭게 입력하는 경우
+        False : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
+                이미 기입력해놓은 경우
+                (이 경우, update_transaction() 메서드를 이용하여 '수정'해야 한다.)
+        """
+
+        try:
+            # Duplicates Check 
+            duplicates = self.find_item(
+                table='portfolio_transaction',
+                condition=f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']}) AND isin_code = CAST('{isin_code}' AS {TYPE_portfolio_transaction['isin_code']})"
+            )
+
+            if len(duplicates) > 0:
+                print(f"[WARNING] This transaction already exist in database: member_id: {member_id}, isin_code: {isin_code}")
+                return False
+
+            # Parameter Setting
+            columns = list(TYPE_portfolio_transaction.keys())
+
+            tr = dict()
+            tr['member_id'] = member_id
+            tr['isin_code'] = isin_code
+            tr['break_even_price'] = break_even_price
+            tr['quantity'] = quantity
+
+            # Query
+            self.insert_item(table='portfolio_transaction', columns=columns, data=tr)
+
+        except Exception as err_msg:
+            print(f"[ERROR] add_transaction Error: {err_msg}")
+            return False
+
+    def update_transaction(self, member_id:str, isin_code:str, break_even_price:float, quantity:int):
+        """
+        해당 회원의 보유 주식 정보를 수정한다.
+
+        [Parameters]
+        member_id        (str)   : 회원 ID
+        isin_code        (str)   : 국제 증권 식별 번호 (12자리)
+        break_even_price (float) : 수정할 평균 매수가
+        quantity         (int)   : 수정할 보유량
+
+        [Returns]
+        True  : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
+                갖고 있는 상태인 경우
+        False : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
+                갖고 있지 않은 경우
+        """
         
+        try:
+            # Duplicates Check 
+            duplicates = self.find_item(
+                table='portfolio_transaction',
+                condition=f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']}) AND isin_code = CAST('{isin_code}' AS {TYPE_portfolio_transaction['isin_code']})"
+            )
+
+            if len(duplicates) == 0:
+                print(f"[WARNING] There is no this transaction: member_id: {member_id}, isin_code: {isin_code}")
+                return False
+            elif len(duplicates) > 1:
+                print(f"[ERROR] Anomaly detected for this transaction: member_id: {member_id}, isin_code: {isin_code}")
+                return False
+
+            # Parameter Setting
+            condition = f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']}) AND isin_code = CAST('{isin_code}' AS {TYPE_portfolio_transaction['isin_code']})"
+            
+            # Query
+            self.update_item(table='portfolio_transaction', column='break_even_price', value=break_even_price, condition=condition)
+            self.update_item(table='portfolio_transaction', column='quantity', value=quantity, condition=condition)
+            return True
+
+        except Exception as err_msg:
+            print(f"[ERROR] update_transaction Error: {err_msg}")
+            return False
+
+    def remove_transaction(self, member_id:str, isin_code:str):
+        """
+        해당 회원의 보유 주식 정보를 제거한다.
+
+        [Parameters]
+        member_id (str) : 회원 ID
+        isin_code (str) : 국제 증권 식별 번호 (12자리)
+
+        [Returns]
+        True  : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
+                갖고 있는 상태인 경우
+        False : 해당 회원(member_id)이 해당 주식 종목(isin_code)에 대한 보유 정보를
+                갖고 있지 않은 경우
+        """
+        
+        try:
+            # Existence Check 
+            existence = self.find_item(
+                table='portfolio_transaction',
+                condition=f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']}) AND isin_code = CAST('{isin_code}' AS {TYPE_portfolio_transaction['isin_code']})"
+            )
+
+            if len(existence) == 0:
+                print(f"[WARNING] There is no this transaction: member_id: {member_id}, isin_code: {isin_code}")
+                return False
+            elif len(existence) > 1:
+                print(f"[ERROR] Anomaly detected for this transaction: member_id: {member_id}, isin_code: {isin_code}")
+                return False
+
+            # Parameter Setting
+            condition = f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']}) AND isin_code = CAST('{isin_code}' AS {TYPE_portfolio_transaction['isin_code']})"
+
+            # Query
+            self.delete_item(table='portfolio_transaction', condition=condition)
+            return True            
+
+        except Exception as err_msg:
+            print(f"[ERROR] remove_transaction Error: {err_msg}")
+            return False
+            
