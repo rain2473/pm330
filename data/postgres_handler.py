@@ -419,10 +419,10 @@ class PostgresHandler():
 
     def get_isin_code(self, short_isin_code:str):
         """
-        ISIN Code에 해당하는 종목의 종가를 조회한다.
+        ISIN Code (축약형)에 해당하는 ISIN Code를 반환한다.
 
         [Parameters]
-        isin_code (str) : 국제 증권 식별 번호 (축약형, 6자리)
+        short_isin_code (str) : 국제 증권 식별 번호 (축약형, 6자리)
 
         [Returns]
         str  : 국제 증권 식별 번호 (12자리)
@@ -437,9 +437,12 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] get_isin_code Error: {err_msg}")
 
+    def get_isin_code_by_item_name(self, item_name:str):
+
+
     def get_short_isin_code(self, isin_code:str):
         """
-        ISIN Code에 해당하는 종목의 종가를 조회한다.
+        ISIN Code에 해당하는 ISIN Code (축약형)를 반환한다.
 
         [Parameters]
         isin_code (str) : 국제 증권 식별 번호 (12자리)
