@@ -1,6 +1,8 @@
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-10-24(월)
+# Date    : 2022-10-25(화)
+
+
 
 # Required Modules
 import psycopg2    # Command to install: "pip install psycopg2-binary"
@@ -8,6 +10,8 @@ import psycopg2    # Command to install: "pip install psycopg2-binary"
 from . import conn_config      as config
 from . import api_handler      as api
 from . import data_manipulator as dm
+
+
 
 # Configurations (Database Schema)
 TYPE_basic_stock_info = {
@@ -67,11 +71,22 @@ TYPE_portfolio_transaction = {
 }
 
 TYPE_world_index_info = {
-
+    'ticker' : 'varchar',
+    'nation' : 'varchar',
+    'index_name' : 'varchar',
 }
 
 TYPE_world_index_price = {
-    
+    'ticker'           : 'varchar',
+    'base_date'        : 'date',
+    'market_price'     : 'double precision',
+    'close_price'      : 'double precision',
+    'adj_close_price'  : 'double precision',
+    'high_price'       : 'double precision',
+    'low_price'        : 'double precision',
+    'fluctuation'      : 'double precision',
+    'fluctuation_rate' : 'double precision',
+    'volume'           : 'bigint',
 }
 
 LIST_TABLE_NAME = [
@@ -406,6 +421,112 @@ class PostgresHandler():
 
         except Exception as err_msg:
             print(f"[ERROR] build_financial_info Error: {err_msg}")
+
+    def build_world_index_info(self):
+        """
+        데이터베이스의 world_index_info 테이블에 세계 주요 주가 지수에 대한 정보들을 저장한다.
+        ※ 본 메서드는 DBA만 수행할 수 있다.
+        
+        [Parameters]
+        -
+        
+        [Returns]
+        -
+        """
+
+        WORLD_INDEX_TICKERS = [ 
+                        {'ticker':'^GSPC',     'nation':'US',          'index_name':'S&P 500'},
+                        {'ticker':'^DJI',      'nation':'US',          'index_name':'Dow Jones Industrial Average'},
+                        {'ticker':'^IXIC',     'nation':'US',          'index_name':'NASDAQ Composite'},
+                        {'ticker':'^NYA',      'nation':'US',          'index_name':'NYSE COMPOSITE (DJ)'},
+                        {'ticker':'^XAX',      'nation':'US',          'index_name':'NYSE AMEX COMPOSITE INDEX'},
+                        {'ticker':'^BUK100P',  'nation':'UK',          'index_name':'Cboe UK 100'},
+                        {'ticker':'^RUT',      'nation':'US',          'index_name':'Russell 2000'},
+                        {'ticker':'^VIX',      'nation':'US',          'index_name':'Vix'},
+                        {'ticker':'\^FTSE',    'nation':'UK',          'index_name':'FTSE 100'},
+                        {'ticker':'^GDAXI',    'nation':'Germany',     'index_name':'DAX PERFORMANCE-INDEX'},
+                        {'ticker':'^FCHI',     'nation':'France',      'index_name':'CAC 40'},
+                        {'ticker':'^STOXX50E', 'nation':'Europe',      'index_name':'ESTX 50 PR.EUR'},
+                        {'ticker':'^N100',     'nation':'France',      'index_name':'Euronext 100 Index'},
+                        {'ticker':'^BFX',      'nation':'Belgium',     'index_name':'BEL 20'},
+                        {'ticker':'IMOEX.ME',  'nation':'Russia',      'index_name':'MOEX Russia Index'},
+                        {'ticker':'^N225',     'nation':'Japan',       'index_name':'Nikkei 225'},
+                        {'ticker':'^HSI',      'nation':'Taiwan',      'index_name':'HANG SENG INDEX'},
+                        {'ticker':'000001.SS', 'nation':'China',       'index_name':'SSE Composite Index'},
+                        {'ticker':'399001.SZ', 'nation':'China',       'index_name':'Shenzhen Index'},
+                        {'ticker':'\^STI',     'nation':'Singapore',   'index_name':'STI Index'},
+                        {'ticker':'^AXJO',     'nation':'Australia',   'index_name':'S&P/ASX 200'},
+                        {'ticker':'^AORD',     'nation':'Australia',   'index_name':'ALL ORDINARIES'},
+                        {'ticker':'^BSESN',    'nation':'India',       'index_name':'S&P BSE SENSEX'},
+                        {'ticker':'^JKSE',     'nation':'Indonesia',   'index_name':'Jakarta Composite Index'},
+                        {'ticker':'\^KLSE',    'nation':'Malaysia',    'index_name':'FTSE Bursa Malaysia KLCI'},
+                        {'ticker':'^NZ50',     'nation':'New Zealand', 'index_name':'S&P/NZX 50 INDEX GROSS'},
+                        {'ticker':'^KS11',     'nation':'Korea',       'index_name':'KOSPI Composite Index'},
+                        {'ticker':'^TWII',     'nation':'Taiwan',      'index_name':'TSEC weighted index'},
+                        {'ticker':'^GSPTSE',   'nation':'Canada',      'index_name':'S&P/TSX Composite index'},
+                        {'ticker':'^BVSP',     'nation':'Brazil',      'index_name':'IBOVESPA'},
+                        {'ticker':'^MXX',      'nation':'Mexico',      'index_name':'IPC MEXICO'},
+                        {'ticker':'^IPSA',     'nation':'Chile',       'index_name':'S&P/CLX IPSA'},
+                        {'ticker':'^MERV',     'nation':'Argentina',   'index_name':'MERVAL'},
+                        {'ticker':'^TA125.TA', 'nation':'Israel',      'index_name':'TA-125'},
+                        {'ticker':'^CASE30',   'nation':'Egypt',       'index_name':'EGX 30 Price Return Index'},
+                        {'ticker':'^JN0U.JO',  'nation':'Republic of South Africa', 'index_name':'Top 40 USD Net TRI Index'},
+        ]
+
+        # DBA Only can run initial building function
+        if(self.conn_user != config.ID_DBA):
+            print("Only DBA can run the build function")
+            return False
+
+        try:
+            # Clear Table
+            self.delete_item(table='world_index_info')
+            self.insert_items(table='world_index_info', columns=['ticker', 'nation', 'index_name'], data=WORLD_INDEX_TICKERS)
+
+        except Exception as err_msg:
+            print(f"[ERROR] build_world_index_info Error: {err_msg}")
+
+    def build_world_index_price(self):
+        """
+        데이터베이스의 world_index_price 테이블에 세계 주요 주가 지수에 대한 가격 정보들을 저장한다.
+        ※ 본 메서드는 DBA만 수행할 수 있다.
+        
+        [Parameters]
+        -
+        
+        [Returns]
+        -
+        """
+
+        # DBA Only can run initial building function
+        if(self.conn_user != config.ID_DBA):
+            print("Only DBA can run the build function")
+            return False
+
+        try:
+            # Clear Table
+            self.delete_item(table='world_index_price')
+
+            # Get information of world indices
+            raw_data = self.get_all_data(table='world_index_info')
+
+            # Parsing
+            world_indices = list()
+            for row in raw_data:
+                data = dict()
+                data['ticker'] = row[0]
+                data['naion'] = row[1]
+                data['index_name'] = row[2]
+                world_indices.append(data)
+
+            # Collect data of prices of indices
+            for world_index in world_indices:
+                prices = api.get_world_index(ticker=world_index['ticker'], startDt='20220101', endDt=dm.YESTERDAY)
+
+                self.insert_items(table='world_index_price', columns=['ticker', 'base_date', 'market_price', 'close_price', 'adj_close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=prices)
+
+        except Exception as err_msg:
+            print(f"[ERROR] build_world_index_info Error: {err_msg}")
 
     def get_all_data(self, table:str=None):
         """
@@ -900,7 +1021,7 @@ class PostgresHandler():
             # Existence Check 
             existence = self.find_item(
                 table='portfolio_transaction',
-                condition=f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']}) AND isin_code = CAST('{isin_code}' AS {TYPE_portfolio_transaction['isin_code']})"
+                condition=f"member_id = CAST('{member_id}' AS {TYPE_portfolio_transaction['member_id']})"
             )
 
             if len(existence) == 0:
