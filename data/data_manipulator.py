@@ -1,14 +1,11 @@
 
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-10-20(목)
+# Date    : 2022-10-25(화)
 
 
 
 # Required Modules
-import requests
-
-from abc         import abstractmethod
 from collections import defaultdict
 from datetime    import datetime, timedelta
 from pytz        import timezone
@@ -24,57 +21,6 @@ TODAY                 = datetime.strftime(datetime.now(timezone('Asia/Seoul'))  
 TOMORROW              = datetime.strftime(datetime.now(timezone('Asia/Seoul')) + timedelta(1)  , "%Y%m%d") # Yesterday (Format:"YYYYMMDD")
 LAST_YEAR             = datetime.strftime(datetime.now(timezone('Asia/Seoul')) - timedelta(365), "%Y")     # Last year (Format:"YYYY")
 CURRENT_YEAR          = datetime.strftime(datetime.now(timezone('Asia/Seoul'))                 , "%Y")     # This year (Format:"YYYY")
-
-
-
-# Class Declaration
-class Get:
-    def __init__(self):
-        self.headers = {"User-Agent": "Mozilla/5.0"}
-
-    def read(self, **params):
-        resp = requests.get(self.url, headers=self.headers, params=params)
-        return resp
-
-    @property
-    @abstractmethod
-    def url(self):
-        return NotImplementedError
-
-class Post:
-    def __init__(self, headers=None):
-        self.headers = {"User-Agent": "Mozilla/5.0"}
-        if headers is not None:
-            self.headers.update(headers)
-
-    def read(self, **params):
-        resp = requests.post(self.url, headers=self.headers, data=params)
-        return resp
-
-    @property
-    @abstractmethod
-    def url(self):
-        return NotImplementedError
-
-class NaverWebIo(Get):
-    @property
-    def url(self):
-        return "http://fchart.stock.naver.com/sise.nhn"
-
-class Sise(NaverWebIo):
-    @property
-    def uri(self):
-        return "/sise.nhn"
-
-    def fetch(self, ticker, count, timeframe='day'):
-        """
-        :param ticker:
-        :param count:
-        :param timeframe: day/week/month
-        :return:
-        """
-        result = self.read(symbol=ticker, timeframe=timeframe, count=count, requestType="0")
-        return result.text
 
 
 
