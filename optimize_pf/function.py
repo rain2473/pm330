@@ -17,8 +17,10 @@ def return_score_rec(m_id):
     rec = pf.recommend_stocks(allo, stock_close, all_close)
     rec_stock_close = pf.create_rec_close(rec[0],'20211025','20221023')
     momentum = pf.get_drift(rec_stock_close)
+    reccomend_list = rec[0]
+
     
-    return score, momentum
+    return score, momentum, reccomend_list
     
 
 return_score_rec('create_test_11')
