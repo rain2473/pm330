@@ -9,7 +9,6 @@
 # Required Modules
 import pandas   as pd
 import numpy    as np
-import yfinance as yf
 
 from pypfopt.expected_returns    import ema_historical_return
 from pypfopt.risk_models         import exp_cov
@@ -20,33 +19,10 @@ from pypfopt                     import HRPOpt
 from pypfopt.objective_functions import sharpe_ratio, portfolio_return, portfolio_variance
 from sklearn.preprocessing       import minmax_scale
 
+from data import postgres_handler as pg
+from data import config
+pgdb = pg.PostgresHandler(user=config.ID_SG, password=config.PW_SG)
 
-# 종가 데이터 변환 
-def convert_to_df():
-    """
-    데이터베이스로부터 받아온 종목과 각 종목의 날짜별 종가를 데이터프레임 형식으로 반환한다.
-    [Parameters]
-    [Returns]
-    DataFrame : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
-    """
-    pass
-    return stocks_close
-
-
-# 회원 포트폴리오 데이터프레임으로 변환
-def convert_to_my_pf():
-    """
-    데이터베이스로부터 받아온 회원이 보유한 종목수와 전일종가를 이용하여
-    종목별 비중의 퍼센트값과 종목별 종가, 시드머니 총액을 반환한다.
-    [Parameters]
-    [Returns]
-    list      : 종목별 비중
-    DataFrame : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
-    int       : 시드머니
-    """
-    pass
-    return weights, stocks_close, seed_money
-    
 
 # 회원 포트폴리오 평가
 def evaluate_my_pf(weights, stocks_close):
@@ -180,3 +156,59 @@ def get_drift(stocks_close):
             momentum[name] = '하락 모멘텀'
     
     return momentum
+
+
+def get_member_stock(m_id):
+    """
+    회원의 아이디를 입력받아 해당 회원의 포트폴리오 편입 종목을 isin으로 반환한다.
+    [Parameters]
+    m_id   (str) : 회원의 아이디
+    [Returns]
+    list : 회원이 보유한 종목 isin code로 이루어진 리스트
+    """
+    member = pgdb.get_portfolio_by_member_id(member_id = m_id)
+    temp_list = []
+    for i in range(len(member)):
+        temp_list.append(member[i]['isin_code'])
+    weight_list = []
+    for i in range(len(member)):
+        weight_list.append(member[i]['quantity'])
+
+    return temp_list, weight_list
+
+def create_member_info(member_isin_list, member_weight, start_date, end_date):
+    close_df = pd.DataFrame()
+    for idx, code in enumerate(member_isin_list):
+        test_close = pgdb.get_close_price(isin_code = code, start_date=start_date, end_date = end_date)
+        df_test = pd.DataFrame(test_close)
+        df_test_mod = df_test.rename(columns={'close_price':df_test['isin_code'][0]})
+        index_date = pd.to_datetime(df_test_mod['base_date'].unique())
+        df_test_mod = df_test_mod.set_index(index_date,drop=True)
+        df_test_mod.drop(columns=['base_date','isin_code'], inplace=True)
+        close_df = pd.concat([close_df,df_test_mod], axis=1)
+    close_df = close_df.astype('float')
+
+    
+    latest_price = close_df.iloc[-1, :]
+    pf_value = latest_price * member_weight
+    seed_money = pf_value.sum()
+    
+    weights = []
+    for idx, quantity in enumerate(member_weight):
+        weights.append(round(quantity/sum(member_weight),2))
+    
+    return close_df, seed_money, weights
+
+def create_rec_close(member_isin_list, start_date, end_date):
+    close_df = pd.DataFrame()
+    for idx, code in enumerate(member_isin_list):
+        test_close = pgdb.get_close_price(isin_code = code, start_date=start_date, end_date = end_date)
+        df_test = pd.DataFrame(test_close)
+        df_test_mod = df_test.rename(columns={'close_price': code})
+        index_date = pd.to_datetime(df_test_mod['base_date'].unique())
+        df_test_mod = df_test_mod.set_index(index_date,drop=True)
+        df_test_mod.drop(columns=['base_date','isin_code'], inplace=True)
+        close_df = pd.concat([close_df,df_test_mod], axis=1)
+    close_df = close_df.astype('float')
+    
+    return close_df
