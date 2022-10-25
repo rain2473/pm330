@@ -7,9 +7,12 @@
 # Required Modules
 import psycopg2    # Command to install: "pip install psycopg2-binary"
 
-from . import conn_config      as config
-from . import api_handler      as api
-from . import data_manipulator as dm
+# from . import conn_config      as config
+# from . import api_handler      as api
+# from . import data_manipulator as dm
+import conn_config      as config
+import api_handler      as api
+import data_manipulator as dm
 
 
 
@@ -503,30 +506,30 @@ class PostgresHandler():
             print("Only DBA can run the build function")
             return False
 
-        try:
-            # Clear Table
-            self.delete_item(table='world_index_price')
+        # try:
+        # Clear Table
+        self.delete_item(table='world_index_price')
 
-            # Get information of world indices
-            raw_data = self.get_all_data(table='world_index_info')
+        # Get information of world indices
+        raw_data = self.get_all_data(table='world_index_info')
 
-            # Parsing
-            world_indices = list()
-            for row in raw_data:
-                data = dict()
-                data['ticker'] = row[0]
-                data['naion'] = row[1]
-                data['index_name'] = row[2]
-                world_indices.append(data)
+        # Parsing
+        world_indices = list()
+        for row in raw_data:
+            data = dict()
+            data['ticker'] = row[0]
+            data['naion'] = row[1]
+            data['index_name'] = row[2]
+            world_indices.append(data)
 
-            # Collect data of prices of indices
-            for world_index in world_indices:
-                prices = api.get_world_index(ticker=world_index['ticker'], startDt='20220101', endDt=dm.YESTERDAY)
+        # Collect data of prices of indices
+        for world_index in world_indices:
+            prices = api.get_world_index(ticker=world_index['ticker'], startDt='20220101', endDt=dm.YESTERDAY)
 
-                self.insert_items(table='world_index_price', columns=['ticker', 'base_date', 'market_price', 'close_price', 'adj_close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=prices)
+            self.insert_items(table='world_index_price', columns=['ticker', 'base_date', 'market_price', 'close_price', 'adj_close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=prices)
 
-        except Exception as err_msg:
-            print(f"[ERROR] build_world_index_info Error: {err_msg}")
+        # except Exception as err_msg:
+        #     print(f"[ERROR] build_world_index_info Error: {err_msg}")
 
     def get_all_data(self, table:str=None):
         """
@@ -1050,3 +1053,43 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] get_portfolio_by_member_id Error: {err_msg}")
             return False
+    
+    def get_fluctuation_rate_of_world_index_price(self):
+        """
+        가장 최근의 세계 지수들의 등락률을 반환한다.
+
+        [Parameters]
+        -
+        
+        [Returns]
+        list  : 세계지수 정보와 등락률이 담긴 리스트 (list of dict)
+            index_name       (str)   : 지수명
+            base_date        (str)   : 기준 일자
+            fluctuation_rate (float) : 등락률
+        """
+
+        try:
+            # Parameter Setting
+            condition = f"base_date = CAST('{dm.YESTERDAY}' AS {TYPE_world_index_price['base_date']})"
+
+            # Query
+            result = self.find_item(table='world_index_price', columns=['ticker', 'base_date', 'fluctuation_rate'], condition=condition)
+
+            # Parsing
+            rows = list()
+            for row in result:
+                raw_string = row[0][1:-1]
+                data = dict()
+                data['index_name'] = self.get_index_name_by_ticker(raw_string.split(sep=',')[0])
+                data['base_date'] = raw_string.split(sep=',')[1]
+                data['fluctuation_rate'] = float(raw_string.split(sep=',')[2])
+                rows.append(data)
+
+            return rows
+
+        except Exception as err_msg:
+            print(f"[ERROR] get_portfolio_by_member_id Error: {err_msg}")
+            return False
+
+pgdb = PostgresHandler(user='byeong_heon', password='kbitacademy')
+print(pgdb.get_fluctuation_rate_of_world_index_price())
