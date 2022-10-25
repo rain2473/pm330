@@ -9,6 +9,7 @@
 # Required Modules
 import pandas   as pd
 import numpy    as np
+import yfinance as yf
 
 from pypfopt.expected_returns    import ema_historical_return
 from pypfopt.risk_models         import exp_cov
@@ -162,7 +163,7 @@ def get_drift(stocks_close):
     [Parameters]
     stocks_close  (DataFrame) : 단일 종목의 이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
     [Returns]
-    float64 : 단일 종목의 모멘텀
+    dict : {'종목':'모멘텀'} 형식의 dict
     """
     log_returns = np.log(1+stocks_close.pct_change()) # 단일 종목의 로그수익률 계산
     U = log_returns.mean()                            # 로그 수익률의 평균
@@ -170,4 +171,12 @@ def get_drift(stocks_close):
     
     drift = U - 0.5*var                               # drift를 구하는 수식을 통한 모멘텀 계산
     
-    return drift
+    momentum = dict()                                 # 문자열을 저장하기 위한 딕셔너리
+    
+    for idx, name in enumerate(dict(drift)):          # 계산된 drift가 양수면 상승, 음수면 하락을 각 종목에 대해 저장
+        if drift[idx] >0:
+            momentum[name] = '상승 모멘텀'
+        else:
+            momentum[name] = '하락 모멘텀'
+    
+    return momentum
