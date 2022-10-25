@@ -1,7 +1,7 @@
 
 # Author      : 이병헌
 # Contact     : lww7438@gmail.com
-# Date        : 2022-10-21(금)
+# Date        : 2022-10-25(화)
 
 # [Description]
 #
@@ -18,17 +18,22 @@
 # - 금융위원회_지수시세정보: 주가지수시세
 # - 한국예탁결제원_기업정보서비스: 기업기본정보 기업개요 조회
 # - 한국예탁결제원_기업정보서비스: 단축번호로 발행회사번호 조회
+# - pandas-datareader
 
 
 
 # Required Modules
-from webbrowser import get
-import requests
+import pandas                as pd
+import pandas_datareader     as pdr
 import xml.etree.ElementTree as et # XML Parser
-from .  import data_manipulator      as dm
-import json                        # JSON Parser
 
+import requests
+import json     # JSON Parser
+
+from abc              import abstractmethod
 from datetime         import datetime, timedelta
+from webbrowser       import get
+from .                import data_manipulator as dm
 
 
 
@@ -57,6 +62,57 @@ ALL_STOCKS_KR = KOSPI_ITEMS + KOSDAQ_ITEMS + KONEX_ITEMS
 
 # * * *   The number of Maximum Corporations in Korea   * * *
 ALL_CORPS = 160000
+
+
+
+# Class Declaration
+class Get:
+    def __init__(self):
+        self.headers = {"User-Agent": "Mozilla/5.0"}
+
+    def read(self, **params):
+        resp = requests.get(self.url, headers=self.headers, params=params)
+        return resp
+
+    @property
+    @abstractmethod
+    def url(self):
+        return NotImplementedError
+
+class Post:
+    def __init__(self, headers=None):
+        self.headers = {"User-Agent": "Mozilla/5.0"}
+        if headers is not None:
+            self.headers.update(headers)
+
+    def read(self, **params):
+        resp = requests.post(self.url, headers=self.headers, data=params)
+        return resp
+
+    @property
+    @abstractmethod
+    def url(self):
+        return NotImplementedError
+
+class NaverWebIo(Get):
+    @property
+    def url(self):
+        return "http://fchart.stock.naver.com/sise.nhn"
+
+class Sise(NaverWebIo):
+    @property
+    def uri(self):
+        return "/sise.nhn"
+
+    def fetch(self, ticker, count, timeframe='day'):
+        """
+        :param ticker:
+        :param count:
+        :param timeframe: day/week/month
+        :return:
+        """
+        result = self.read(symbol=ticker, timeframe=timeframe, count=count, requestType="0")
+        return result.text
 
 
 
@@ -900,7 +956,7 @@ def get_market_ohlcv_by_date(short_isin_code:str, start_date:str='20000101', end
     today = datetime.now()
     elapsed = today - start_date + timedelta(days=1)
 
-    xml = dm.Sise().fetch(short_isin_code, elapsed.days)
+    xml = Sise().fetch(short_isin_code, elapsed.days)
 
     result = []
     try:
@@ -937,3 +993,48 @@ def get_market_ohlcv_by_date(short_isin_code:str, start_date:str='20000101', end
     except et.ParseError:
         print("[ERROR] Parser Error")
         return None
+
+def get_world_index(ticker:str, startDt:str="20000101", endDt:str=dm.YESTERDAY):
+    """
+    세계 주요 주가 지수의 일별 OHCLV(Open, High, Close, Low, Volume) 데이터를 담은 DataFrame을 반환한다.
+    
+    [Parameters]
+    ticker  (str) : 조회할 지수의 Ticker
+    startDt (str) : 조회할 데이터의 시작 일자 (YYYYMMDD) (Default: "20000101")
+    endDt   (str) : 조회할 데이터의 종료 일자 (YYYYMMDD) (Default: 전일)
+    
+    [Returns]
+    pandas.core.frame.DataFrame : 세계 주요 주가 지수의 일별 OHCLV 데이터를 담은 DataFrame
+    """
+    
+    startDt_datetime = datetime.strptime(startDt, '%Y%m%d')
+    endDt_datetime   = datetime.strptime(endDt,   '%Y%m%d')
+    
+    try:
+        prices = pdr.DataReader(ticker, 'yahoo', startDt_datetime, endDt_datetime).sort_index()
+        prices['fluctuation'] = prices['Close'] - prices['Close'].shift(+1)
+        prices['fluctuation_rate'] = prices['Close'].pct_change()
+        prices = prices.to_dict(orient='index')
+
+        output = list()
+
+        for base_date, ohlcv in prices.items():
+            row = dict()
+
+            # Column Renaming
+            row['ticker'] = ticker
+            row['base_date'] = base_date.strftime('%Y%m%d')
+            row['high_price'] = ohlcv.pop('High', None)
+            row['low_price'] = ohlcv.pop('Low', None)
+            row['market_price'] = ohlcv.pop('Open', None)
+            row['close_price'] = ohlcv.pop('Close', None)
+            row['volume'] = ohlcv.pop('Volume', None)
+            row['adj_close_price'] = ohlcv.pop('Adj Close', None)
+            row['fluctuation'] = ohlcv.pop('fluctuation', None)
+            row['fluctuation_rate'] = ohlcv.pop('fluctuation_rate', None)
+            output.append(row)
+
+        return output
+                
+    except Exception as err_msg:
+            print(f"[ERROR] get_world_index Error: {err_msg}")
