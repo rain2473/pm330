@@ -1091,5 +1091,27 @@ class PostgresHandler():
             print(f"[ERROR] get_portfolio_by_member_id Error: {err_msg}")
             return False
 
+    def get_index_name_by_ticker(self, ticker:str):
+        """
+        티커에 해당되는 지수명을 반환한다.
+
+        [Parameters]
+        ticker (str) : 티커
+        
+        [Returns]
+        str : 지수명
+        """
+
+        try:
+            # Parameter Setting
+            condition = f"ticker = CAST('{ticker}' AS {TYPE_world_index_info['ticker']})"
+
+            # Query
+            return self.find_item(table='world_index_info', columns='index_name', condition=condition)[0][0]
+
+        except Exception as err_msg:
+            print(f"[ERROR] get_index_name_by_ticker Error: {err_msg}")
+            return False        
+
 pgdb = PostgresHandler(user='byeong_heon', password='kbitacademy')
 print(pgdb.get_fluctuation_rate_of_world_index_price())
