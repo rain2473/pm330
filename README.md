@@ -19,7 +19,7 @@
 <br />
 <br />
 
-# Main Features (주요 기능) :bar_chart:
+# :bar_chart: Main Features (주요 기능) 
 - 코스피 섹터별 트리멥<br /><br />
 - 나의 포트폴리오 종목 입력/수정/삭제<br /><br />
 - 코스피 상장 종목 간 상관계수를 산출하여 포트폴리오 리스크 매니지먼트<br /><br />
@@ -30,7 +30,7 @@
 <br />
 <br />
 
-# Tech Stack (기술 스택) :wrench:
+# :wrench: Tech Stack (기술 스택) 
 |    **Tech**    |      **Description**      |
 |:--------------:|:-------------------------:|
 |   **Django**   | 프론트엔드 및 백엔드 구성 |
@@ -43,5 +43,5 @@
 <br />
 <br />
 
-# Database Schema (데이터베이스 구조) :triangular_ruler:
+# :triangular_ruler: Database Schema (데이터베이스 구조) 
 ![Screenshot](/data/Schema.png)
