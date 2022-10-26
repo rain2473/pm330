@@ -6,21 +6,32 @@
 <br />
 <br />
 <br />
-# About Us
-
-|   Name  |                 김덕룡                 |                 정제헌                 |                 조익준                 |                 홍윤기                 |              유상균             |         이병헌         |
+# About Us (팀 소개)
+|   **Name**  |                 김덕룡                 |                 정제헌                 |                 조익준                 |                 홍윤기                 |              유상균             |         이병헌         |
 |:-------:|:--------------------------------------:|:--------------------------------------:|:--------------------------------------:|:--------------------------------------:|:-------------------------------:|:----------------------:|
-| Contact |          zjavbxj523@naver.com          |          shout_world@naver.com         |          harry960629@naver.com         |           rain2473@naver.com           |       sglyu0414@gmail.com       |    lww7438@gmail.com   |
-|   Role  | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Back-end Developer Data Analyst | Back-end Developer DBA |
+| **Contact** |          zjavbxj523@naver.com          |          shout_world@naver.com         |          harry960629@naver.com         |           rain2473@naver.com           |       sglyu0414@gmail.com       |    lww7438@gmail.com   |
+|   **Role**  | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Back-end Developer Data Analyst | Back-end Developer DBA |
 <br />
 <br />
 <br />
 
-# Main Features
-<br />
-- 코스피 섹터별 히트맵<br /><br />
+# Main Features (주요 기능)
+- 코스피 섹터별 트리멥<br /><br />
 - 나의 포트폴리오 종목 입력/수정/삭제<br /><br />
-- LSTM에 과거 주가 데이터를 적용하여 단기 주가 예측<br /><br />
-- 종목 관련 기사 감성분석<br /><br />
-- 나의 포트폴리오 종합 평가<br /><br />
-- 과거 주가 데이터(정량 지표)와 관련 뉴스 감성분석 결과(정성 지표)를 고려한 포트폴리오 리밸런싱<br /><br />
+- 코스피 상장 종목 간 상관계수를 산출하여 포트폴리오 리스크 매니지먼트<br /><br />
+- Efficient Frontier와 Sharpe Ratio 산출 (정량 지표 산출)<br /><br />
+- 종목에 관련된 뉴스 기사 감성 분석 (정성 지표 산출)<br /><br />
+- 나의 포트폴리오 종합 평가 및 리밸런싱<br /><br />
+<br />
+<br />
+<br />
+
+# Tech Stack (기술 스택)
+|    **Tech**    |      **Description**      |
+|:--------------:|:-------------------------:|
+|   **Django**   | 프론트엔드 및 백엔드 구성 |
+| **PostgreSQL** |        데이터베이스       |
+|  **KB ALBERT** |    자연어 감성분석 모델   |
+|   **AWS RDS**  |      클라우드 컴퓨팅      |
+|   **Heroku**   |         웹 호스팅         |
+| **Git/GitHub** |         버전 관리         |
