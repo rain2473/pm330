@@ -7,10 +7,14 @@
 <br />
 <br />
 # About Us (팀 소개)
-|   **Name**  |                 김덕룡                 |                 정제헌                 |                 조익준                 |                 홍윤기                 |              유상균             |         이병헌         |
-|:-------:|:--------------------------------------:|:--------------------------------------:|:--------------------------------------:|:--------------------------------------:|:-------------------------------:|:----------------------:|
-| **Contact** |          zjavbxj523@naver.com          |          shout_world@naver.com         |          harry960629@naver.com         |           rain2473@naver.com           |       sglyu0414@gmail.com       |    lww7438@gmail.com   |
-|   **Role**  | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Front-end Developer Back-end Developer | Back-end Developer Data Analyst | Back-end Developer DBA |
+|  **Name**  |                **Role**                |      **Contact**      |
+|:----------:|:--------------------------------------:|:---------------------:|
+| **김덕룡** | Front-end Developer<br/>Back-end Developer |  zjavbxj523@naver.com |
+| **정제헌** | Front-end Developer<br/>Back-end Developer | shout_world@naver.com |
+| **조익준** | Front-end Developer<br/>Back-end Developer | harry960629@naver.com |
+| **홍윤기** | Front-end Developer<br/>Back-end Developer |   rain2473@naver.com  |
+| **유상균** |     Back-end Developer<br/>Data Analyst    |  sglyu0414@gmail.com  |
+| **이병헌** |         Back-end Developer<br/>DBA         |   lww7438@gmail.com   |
 <br />
 <br />
 <br />
