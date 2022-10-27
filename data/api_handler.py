@@ -33,7 +33,8 @@ import json     # JSON Parser
 from abc              import abstractmethod
 from datetime         import datetime, timedelta
 from webbrowser       import get
-from .                import data_manipulator as dm
+# from .                import data_manipulator as dm
+import data_manipulator as dm
 
 
 
@@ -1013,7 +1014,9 @@ def get_world_index(ticker:str, startDt:str="20000101", endDt:str=dm.YESTERDAY):
     try:
         prices = pdr.DataReader(ticker, 'yahoo', startDt_datetime, endDt_datetime).sort_index()
         prices['fluctuation'] = prices['Close'] - prices['Close'].shift(+1)
+        prices['fluctuation'].fillna(0, inplace=True)
         prices['fluctuation_rate'] = prices['Close'].pct_change()
+        prices['fluctuation_rate'].fillna(0, inplace=True)
         prices = prices.to_dict(orient='index')
 
         output = list()

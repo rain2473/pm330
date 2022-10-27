@@ -1,0 +1,12 @@
+{
+  "cls_token": "[CLS]",
+  "mask_token": "[MASK]",
+  "model_max_length": 512,
+  "name_or_path": "kb-albert-char",
+  "pad_token": "[PAD]",
+  "sep_token": "[SEP]",
+  "special_tokens_map_file": null,
+  "strip_accents": null,
+  "tokenizer_class": "KbAlbertCharTokenizer",
+  "unk_token": "[UNK]"
+}

@@ -10,9 +10,11 @@ import psycopg2    # Command to install: "pip install psycopg2-binary"
 # from . import conn_config      as config
 # from . import api_handler      as api
 # from . import data_manipulator as dm
+# from . import set_news         as news
 import conn_config      as config
 import api_handler      as api
 import data_manipulator as dm
+import set_news         as news
 
 
 
@@ -114,9 +116,10 @@ SCHEMA = {
     'world_index_price'     : TYPE_world_index_price,
 }
 
-STR_TYPES  = ['varchar', 'text', 'char', 'date']
-NULL_TYPES = [None, 'None', 'none', 'NULL', 'null', 'nullptr', '']
+STR_TYPES  = ('varchar', 'text', 'char', 'date')
+NULL_TYPES = (None, 'None', 'none', 'NULL', 'null', 'nullptr', '')
 
+MARKET_CATEGORIES = ('KOSPI', 'KOSDAQ', 'KONEX')
 
 
 # Functions
@@ -365,16 +368,16 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] build_basic_stock_info: {err_msg}")
 
-    def build_price_info(self):
+    def build_price_info(self, market_category:str='ALL'):
         """
         데이터베이스의 price_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 주가정보들을 저장한다.
         ※ 본 메서드는 DBA만 수행할 수 있다.
         
         [Parameters]
-        -
+        market_category (str) : 주가정보를 가져올 종목들의 상장 시장 (default='ALL') ('KOSPI':코스피 | 'KOSDAQ':코스닥 | 'KONEX':코넥스)
         
         [Returns]
-        -
+        False : 오류가 발생한 경우
         """
         
         # DBA Only can run initial building function
@@ -386,15 +389,30 @@ class PostgresHandler():
             # Clear Table
             self.delete_item(table='price_info')
 
-            # Listing All Stock
-            krx_listed_info = api.get_krx_listed_info(serviceKey=config.API_KEY_OPEN_DATA_PORTAL)
+            # Listing Stocks
+            if market_category == 'ALL':
+                krx_listed_info = self.find_item(table='basic_stock_info', columns=['isin_code', 'market_category'])
+            elif market_category in MARKET_CATEGORIES:
+                condition = f"market_category = CAST('{market_category}' AS {TYPE_basic_stock_info['market_category']})"
+                rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'short_isin_code'], condition=condition)
+            else:
+                print(f"[ERROR] Invalid parameter: market_category: {market_category}")
+                return False
+
+            # Parsing
+            krx_listed_info = list()
+            for row in rows:
+                data = dict()
+                data['isin_code'] = row[0][1:-1].split(',')[0]
+                data['short_isin_code'] = row[0][1:-1].split(',')[1]
+                krx_listed_info.append(data)
 
             for kr_stock in krx_listed_info:
 
-                list_ohlcv = api.get_market_ohlcv_by_date(short_isin_code=kr_stock['shotnIsin'])
+                list_ohlcv = api.get_market_ohlcv_by_date(short_isin_code=kr_stock['short_isin_code'])
 
                 for ohlcv in list_ohlcv:
-                    ohlcv['isin_code'] = kr_stock['isinCd']
+                    ohlcv['isin_code'] = kr_stock['isin_code']
                     ohlcv.pop('short_isin_code')
 
                 self.insert_items(table='price_info', columns=['base_date', 'isin_code', 'market_price', 'close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=list_ohlcv)
@@ -425,6 +443,53 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] build_financial_info Error: {err_msg}")
 
+    def build_news_info(self, market_category:str='ALL'):
+        """
+        데이터베이스의 news_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 주가정보들을 저장한다.
+        ※ 본 메서드는 DBA만 수행할 수 있다.
+        
+        [Parameters]
+        market_category (str) : 주가정보를 가져올 종목들의 상장 시장 (default='ALL') ('KOSPI':코스피 | 'KOSDAQ':코스닥 | 'KONEX':코넥스)
+        
+        [Returns]
+        False : 오류가 발생한 경우
+        """
+
+        # DBA Only can run initial building function
+        if(self.conn_user != config.ID_DBA):
+            print("Only DBA can run the build function")
+            return False
+
+        try:
+            # Clear Table
+            self.delete_item(table='news_info')
+
+            # Listing Stocks
+            if market_category == 'ALL':
+                rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'market_category'])
+            elif market_category in MARKET_CATEGORIES:
+                condition = f"market_category = CAST('{market_category}' AS {TYPE_basic_stock_info['market_category']})"
+                rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'short_isin_code'], condition=condition)
+            else:
+                print(f"[ERROR] Invalid parameter: market_category: {market_category}")
+                return False
+
+            # Parsing
+            krx_listed_info = list()
+            for row in rows:
+                data = dict()
+                data['isin_code'] = row[0][1:-1].split(',')[0]
+                data['short_isin_code'] = row[0][1:-1].split(',')[1]
+                krx_listed_info.append(data)
+
+            for kr_stock in krx_listed_info:
+
+                list_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
+                self.insert_items(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=list_news)
+        
+        except Exception as err_msg:
+            print(f"[ERROR] build_news_info Error: {err_msg}")
+
     def build_world_index_info(self):
         """
         데이터베이스의 world_index_info 테이블에 세계 주요 주가 지수에 대한 정보들을 저장한다.
@@ -437,43 +502,47 @@ class PostgresHandler():
         -
         """
 
-        WORLD_INDEX_TICKERS = [ 
-                        {'ticker':'^GSPC',     'nation':'US',          'index_name':'S&P 500'},
-                        {'ticker':'^DJI',      'nation':'US',          'index_name':'Dow Jones Industrial Average'},
-                        {'ticker':'^IXIC',     'nation':'US',          'index_name':'NASDAQ Composite'},
-                        {'ticker':'^NYA',      'nation':'US',          'index_name':'NYSE COMPOSITE (DJ)'},
-                        {'ticker':'^XAX',      'nation':'US',          'index_name':'NYSE AMEX COMPOSITE INDEX'},
-                        {'ticker':'^BUK100P',  'nation':'UK',          'index_name':'Cboe UK 100'},
-                        {'ticker':'^RUT',      'nation':'US',          'index_name':'Russell 2000'},
-                        {'ticker':'^VIX',      'nation':'US',          'index_name':'Vix'},
-                        {'ticker':'\^FTSE',    'nation':'UK',          'index_name':'FTSE 100'},
-                        {'ticker':'^GDAXI',    'nation':'Germany',     'index_name':'DAX PERFORMANCE-INDEX'},
-                        {'ticker':'^FCHI',     'nation':'France',      'index_name':'CAC 40'},
-                        {'ticker':'^STOXX50E', 'nation':'Europe',      'index_name':'ESTX 50 PR.EUR'},
-                        {'ticker':'^N100',     'nation':'France',      'index_name':'Euronext 100 Index'},
-                        {'ticker':'^BFX',      'nation':'Belgium',     'index_name':'BEL 20'},
-                        {'ticker':'IMOEX.ME',  'nation':'Russia',      'index_name':'MOEX Russia Index'},
-                        {'ticker':'^N225',     'nation':'Japan',       'index_name':'Nikkei 225'},
-                        {'ticker':'^HSI',      'nation':'Taiwan',      'index_name':'HANG SENG INDEX'},
-                        {'ticker':'000001.SS', 'nation':'China',       'index_name':'SSE Composite Index'},
-                        {'ticker':'399001.SZ', 'nation':'China',       'index_name':'Shenzhen Index'},
-                        {'ticker':'\^STI',     'nation':'Singapore',   'index_name':'STI Index'},
-                        {'ticker':'^AXJO',     'nation':'Australia',   'index_name':'S&P/ASX 200'},
-                        {'ticker':'^AORD',     'nation':'Australia',   'index_name':'ALL ORDINARIES'},
-                        {'ticker':'^BSESN',    'nation':'India',       'index_name':'S&P BSE SENSEX'},
-                        {'ticker':'^JKSE',     'nation':'Indonesia',   'index_name':'Jakarta Composite Index'},
-                        {'ticker':'\^KLSE',    'nation':'Malaysia',    'index_name':'FTSE Bursa Malaysia KLCI'},
-                        {'ticker':'^NZ50',     'nation':'New Zealand', 'index_name':'S&P/NZX 50 INDEX GROSS'},
-                        {'ticker':'^KS11',     'nation':'Korea',       'index_name':'KOSPI Composite Index'},
-                        {'ticker':'^TWII',     'nation':'Taiwan',      'index_name':'TSEC weighted index'},
-                        {'ticker':'^GSPTSE',   'nation':'Canada',      'index_name':'S&P/TSX Composite index'},
-                        {'ticker':'^BVSP',     'nation':'Brazil',      'index_name':'IBOVESPA'},
-                        {'ticker':'^MXX',      'nation':'Mexico',      'index_name':'IPC MEXICO'},
-                        {'ticker':'^IPSA',     'nation':'Chile',       'index_name':'S&P/CLX IPSA'},
-                        {'ticker':'^MERV',     'nation':'Argentina',   'index_name':'MERVAL'},
-                        {'ticker':'^TA125.TA', 'nation':'Israel',      'index_name':'TA-125'},
-                        {'ticker':'^CASE30',   'nation':'Egypt',       'index_name':'EGX 30 Price Return Index'},
-                        {'ticker':'^JN0U.JO',  'nation':'Republic of South Africa', 'index_name':'Top 40 USD Net TRI Index'},
+        WORLD_INDEX_TICKERS = [
+
+            # Primary Indices below:
+            {'ticker':'^GSPC',     'nation':'US',          'index_name':'S&P 500',                      'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^DJI',      'nation':'US',          'index_name':'Dow Jones Industrial Average', 'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^IXIC',     'nation':'US',          'index_name':'NASDAQ Composite',             'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^VIX',      'nation':'US',          'index_name':'Vix',                          'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^GDAXI',    'nation':'Germany',     'index_name':'DAX PERFORMANCE-INDEX',        'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^FCHI',     'nation':'France',      'index_name':'CAC 40',                       'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^N100',     'nation':'France',      'index_name':'Euronext 100 Index',           'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^N225',     'nation':'Japan',       'index_name':'Nikkei 225',                   'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^HSI',      'nation':'Taiwan',      'index_name':'HANG SENG INDEX',              'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'000001.SS', 'nation':'China',       'index_name':'SSE Composite Index',          'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'399001.SZ', 'nation':'China',       'index_name':'Shenzhen Index',               'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^KS11',     'nation':'Korea',       'index_name':'KOSPI Composite Index',        'latitude':12.3, 'longtitude':45.6},
+
+            # Secondary Indices below:
+            {'ticker':'^BUK100P',  'nation':'UK',          'index_name':'Cboe UK 100',                  'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^NYA',      'nation':'US',          'index_name':'NYSE COMPOSITE (DJ)',          'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^XAX',      'nation':'US',          'index_name':'NYSE AMEX COMPOSITE INDEX',    'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^RUT',      'nation':'US',          'index_name':'Russell 2000',                 'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'\^FTSE',    'nation':'UK',          'index_name':'FTSE 100',                     'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^STOXX50E', 'nation':'Europe',      'index_name':'ESTX 50 PR.EUR',               'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^BFX',      'nation':'Belgium',     'index_name':'BEL 20',                       'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'IMOEX.ME',  'nation':'Russia',      'index_name':'MOEX Russia Index',            'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'\^STI',     'nation':'Singapore',   'index_name':'STI Index',                    'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^AXJO',     'nation':'Australia',   'index_name':'S&P/ASX 200',                  'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^AORD',     'nation':'Australia',   'index_name':'ALL ORDINARIES',               'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^BSESN',    'nation':'India',       'index_name':'S&P BSE SENSEX',               'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^JKSE',     'nation':'Indonesia',   'index_name':'Jakarta Composite Index',      'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'\^KLSE',    'nation':'Malaysia',    'index_name':'FTSE Bursa Malaysia KLCI',     'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^NZ50',     'nation':'New Zealand', 'index_name':'S&P/NZX 50 INDEX GROSS',       'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^TWII',     'nation':'Taiwan',      'index_name':'TSEC weighted index',          'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^GSPTSE',   'nation':'Canada',      'index_name':'S&P/TSX Composite index',      'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^BVSP',     'nation':'Brazil',      'index_name':'IBOVESPA',                     'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^MXX',      'nation':'Mexico',      'index_name':'IPC MEXICO',                   'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^IPSA',     'nation':'Chile',       'index_name':'S&P/CLX IPSA',                 'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^MERV',     'nation':'Argentina',   'index_name':'MERVAL',                       'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^TA125.TA', 'nation':'Israel',      'index_name':'TA-125',                       'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^CASE30',   'nation':'Egypt',       'index_name':'EGX 30 Price Return Index',    'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^JN0U.JO',  'nation':'Republic of South Africa', 'index_name':'Top 40 USD Net TRI Index', 'latitude':12.3, 'longtitude':45.6},
         ]
 
         # DBA Only can run initial building function
@@ -506,30 +575,30 @@ class PostgresHandler():
             print("Only DBA can run the build function")
             return False
 
-        # try:
-        # Clear Table
-        self.delete_item(table='world_index_price')
+        try:
+            # Clear Table
+            self.delete_item(table='world_index_price')
 
-        # Get information of world indices
-        raw_data = self.get_all_data(table='world_index_info')
+            # Get information of world indices
+            raw_data = self.get_all_data(table='world_index_info')
 
-        # Parsing
-        world_indices = list()
-        for row in raw_data:
-            data = dict()
-            data['ticker'] = row[0]
-            data['naion'] = row[1]
-            data['index_name'] = row[2]
-            world_indices.append(data)
+            # Parsing
+            world_indices = list()
+            for row in raw_data:
+                data = dict()
+                data['ticker'] = row[0]
+                data['naion'] = row[1]
+                data['index_name'] = row[2]
+                world_indices.append(data)
 
-        # Collect data of prices of indices
-        for world_index in world_indices:
-            prices = api.get_world_index(ticker=world_index['ticker'], startDt='20220101', endDt=dm.YESTERDAY)
+            # Collect data of prices of indices
+            for world_index in world_indices:
+                prices = api.get_world_index(ticker=world_index['ticker'], startDt='20220101', endDt=dm.YESTERDAY)
 
-            self.insert_items(table='world_index_price', columns=['ticker', 'base_date', 'market_price', 'close_price', 'adj_close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=prices)
+                self.insert_items(table='world_index_price', columns=['ticker', 'base_date', 'market_price', 'close_price', 'adj_close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=prices)
 
-        # except Exception as err_msg:
-        #     print(f"[ERROR] build_world_index_info Error: {err_msg}")
+        except Exception as err_msg:
+            print(f"[ERROR] build_world_index_info Error: {err_msg}")
 
     def get_all_data(self, table:str=None):
         """
@@ -753,7 +822,7 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] set_news Error: {err_msg}")
 
-    def set_multiple_news(self, news_list:list):
+    def  set_multiple_news(self, news_list:list):
         """
         새로운 다수의 뉴스 기사를 데이터베이스에 저장한다.
         해당 종목(short_isin_code)에 연관된 뉴스 기사가 50개를 초과할 경우,
@@ -1114,4 +1183,4 @@ class PostgresHandler():
             return False        
 
 pgdb = PostgresHandler(user='byeong_heon', password='kbitacademy')
-print(pgdb.get_fluctuation_rate_of_world_index_price())
+pgdb.build_news_info(market_category='KOSPI')
