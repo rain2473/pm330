@@ -1,3 +1,1 @@
-# web:python manage.py runserver
-web:gunicorn mysite.wsgi --log-file -
-# release:python ./server/data/scheduler.py
+web: python manage.py runserver 0.0.0.0:5000
