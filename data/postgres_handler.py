@@ -1,6 +1,6 @@
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-10-25(화)
+# Date    : 2022-10-27(목)
 
 
 
@@ -14,7 +14,7 @@ import psycopg2    # Command to install: "pip install psycopg2-binary"
 import conn_config      as config
 import api_handler      as api
 import data_manipulator as dm
-# import set_news         as news
+import set_news         as news
 
 
 
@@ -484,7 +484,16 @@ class PostgresHandler():
 
             for kr_stock in krx_listed_info:
 
-                list_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
+                raw_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
+                list_news = list()
+                for news in raw_news:
+                    data = dict()
+                    data['isin_code'] = news[0]
+                    data['write_code'] = news[1]
+                    data['headline'] = news[2]
+                    data['sentiment'] = float(news[3])
+                    list_news.append(data)
+
                 self.insert_items(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=list_news)
         
         except Exception as err_msg:
