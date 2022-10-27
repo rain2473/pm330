@@ -10,7 +10,7 @@
         </div>
         {% if stock_list %}
         <div style="margin-top: 1%">
-            <table style="width: 70%; margin-left: auto; margin-right: auto; ">
+            <table style="width: 70%; margin-left: auto; margin-right: auto; outline:auto; outline-color: #FFBC00;">
                 <style>
                     th, td {
                         border: 1px solid #d9d9d9;
@@ -20,10 +20,8 @@
                 <thead>
                     <tr>
                         <th style="font-size: 1.2rem; color : #FFBC00; background-color : #60584c">종목</th>
-                        <th style="font-size: 1.2rem; color : #FFBC00; background-color : #60584c">현재가</th>
                         <th style="font-size: 1.2rem; color : #FFBC00; background-color : #60584c">평단가</th>
                         <th style="font-size: 1.2rem; color : #FFBC00; background-color : #60584c">수량</th>
-                        <th style="font-size: 1.2rem; color : #FFBC00; background-color : #60584c">매수날짜</th>
                         <th style="font-size: 1.2rem; color : #FFBC00; background-color : #60584c">수정</th>
                         <th style="font-size: 1.2rem; color : #FFBC00; background-color : #60584c">삭제</th>    
                     </tr>    
@@ -32,20 +30,16 @@
                 {% for stock in stock_list %}
                 <tr>
                     <td style="font-size: 1.2rem; color : #d9d9d9; background-color : #60584c">{{ stock.subject }}</td>
-                    <td style="font-size: 1.2rem; color : #d9d9d9; background-color : #60584c">{{ stock.now_price }}
-                    </td>
                     <td style="font-size: 1.2rem; color : #d9d9d9; background-color : #60584c">{{ stock.avg_price }}
                     </td>
                     <td style="font-size: 1.2rem; color : #d9d9d9; background-color : #60584c">{{ stock.quantity }}</td>
-                    <td style="font-size: 1.2rem; color : #d9d9d9; background-color : #60584c">{{ stock.create_date | date:'Y-m-d' }}
-                    </td>
                     <td style="font-size: 1.2rem; color : #60584c; background-color : #60584c">
                         <!-- <input type="button" value="수정"> -->
-                        <a href="{% url 'pybo:stock_modify' stock.id %}" class="btn btn-primary">수정</a>
+                        <a href="{% url 'pybo:stock_modify' stock.stock_short_code %}" class="btn btn-primary">수정</a>
                     </td>
                     <td style="font-size: 1.2rem; color : #60584c; background-color : #60584c">
                         <!-- <input type="button" value="삭제"> -->
-                        <a href="#" class="delete btn btn-primary" data-uri="{% url 'pybo:stock_delete' stock.id %}">삭제</a>
+                        <a href="#" class="delete btn btn-primary" data-uri="{% url 'pybo:stock_delete' stock.stock_short_code %}">삭제</a>
 
                     </td>   
                 </tr>

@@ -1,36 +1,35 @@
+import re
 from plotly.offline import plot
+from plotly.graph_objs import *
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from data import postgres_handler as pg
-from data import api_handler      as api
+from data import api_handler      as ap
 from data import data_manipulator as dm
 from data import conn_config as con
+
 # import sys, os
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 # from optimize_pf import PF_optimizer as pf
+pgdb = pg.PostgresHandler(user=con.ID_DR, password=con.PW_DR)
 
-def myportfolio_plot_view():
+def myportfolio_plot_view(member_id):
     """ 
     View demonstrating how to display a graph object
     on a web page with Plotly. 
     """
-    
-    my_stock = [
-    ['삼성전자',56500,50000,30,'2021-11-30'],
-    ['LG에너지솔루션',48900,500000,5,'2022-04-20'],
-    ['SK하이닉스',95800,87000,20,'2022-04-01'],
-    ['LG화학',611000,598000,7,'2022-06-18'],
-    ['현대차',168000,100000,15,'2022-02-15'],
-    ['카카오',49400,12000,20,'2022-08-20']
-    ]
+    stock_list = pgdb.get_portfolio_by_member_id(member_id)
+    my_stock=[]
+    for stock in stock_list:
+        now_price = pgdb.get_close_price(stock["isin_code"],start_date='20221018',end_date='20221018')[0]
+        my_stock.append([pgdb.get_item_name_by_isin_code(stock["isin_code"]),int(now_price["close_price"]),stock["break_even_price"],stock["quantity"]])
 
     # Generating some data for plots.
     my_portfolio = pd.DataFrame(my_stock,
-    columns=['종목','현재가','평단가','수량','매수일자'])
-    my_portfolio['매수일자'] = pd.to_datetime(my_portfolio['매수일자'])
+    columns=['종목','현재가','평단가','수량'])
     data = my_portfolio
 
     labels = data['종목']
@@ -39,7 +38,7 @@ def myportfolio_plot_view():
     
     # List of graph objects for figure.
     # Each object will contain on series of data.
-    graphs = [go.Pie(labels=labels, values=values, customdata = yields ,hole=.3,
+    graphs = [go.Pie(labels=labels, values=values, customdata = yields ,hole=.3, pull=0.03,
     # 표시될 문자 형식 - 이름(줄바꿈) 등락율(%)
     texttemplate='%{label}<br>%{percent}',
     # 표시될 문자의 위치 - 중단 중앙
@@ -167,3 +166,124 @@ def score_display(score):
     tens = palette[(score//10)]
     ones = palette[(score%10)]
     return tens, ones
+
+
+
+def mapbox_maker():
+
+    yesterday = dm.YESTERDAY
+    just_yesterday = str(int(yesterday)-1)
+
+    dataframe = pd.DataFrame([])
+    ticker = ["^KS11","^N225","399001.SZ","000001.SS","^HSI","^TWII","^GSPC","^DJI","^IXIC","^VIX","\^FTSE","^STOXX50E","^N100","^GDAXI","^FCHI"]
+    for i in range(len(ticker)):
+        tmp = ap.get_world_index(ticker[i],just_yesterday,yesterday)
+        tmp = pd.DataFrame(tmp)
+        dataframe = pd.concat([dataframe,tmp])
+    dataframe = dataframe[dataframe['base_date'] == yesterday][['ticker',"base_date","close_price","fluctuation_rate"]]
+    dataframe['fluctuation_rate'] = dataframe['fluctuation_rate']*100
+    dataframe['fluctuation_rate'] = dataframe['fluctuation_rate'].round(decimals = 2)
+    dataframe['close_price'] = round(dataframe['close_price']).astype("int")
+    trace1 = {
+    "ticker" : ["^KS11","^N225","399001.SZ","000001.SS","^HSI","^TWII","^GSPC","^DJI","^IXIC","^VIX","\^FTSE","^STOXX50E","^N100","^GDAXI","^FCHI"],
+    "nation" : ["한국","일본","중국","중국","대만","대만","미국","미국","미국","미국","영국", "유럽", "프랑스","독일","프랑스"],
+    "index_name": ["KOSPI", "NIKKEI",  "SHENZHEN", "SSE", "HANGSENG", "TSEC", "S&P500", "DOW JONES", "NASDAQ", "VIX","FTSE 100", "ESTX 50", "EURONEXT", "DAX", "CAC 40"], 
+    "lat": [37.5, 36.4, 37.1, 29.1, 22.1, 24.4, 39.1, 38.7,  42.5, 44.1,53.5, 41.9, 46.4, 52.8, 48.2], 
+    "lon": [128.00, 138.24,116.5, 119.2, 120.1, 121.3, -118.3, -94.2, -74.1, -84.2,-2.1, 13.5, 2.1, 10.45, 4.3], 
+    "color": ["#810023", "#0D0863", "#1C7600", "#3BF400", "#E9C200", "#E2E200", "#B9005E", "#630497", "#920092", "#B88CDB", "#431F01","#ff0000","#B3A000", "#006B6B","#B4D900"],
+    "textposition": ["top center", "bottom center", "middle left", "middle left", "bottom center", "middle right", "top right", "bottom center", "bottom right", 
+                    "top center","top left", "bottom center", "middle left", "middle right", "middle right"]
+    }
+    data = pd.DataFrame(trace1)
+    data = pd.merge(data,dataframe)
+    data['text'] = data['index_name']+" : "+data["fluctuation_rate"].astype("str")+"%"
+    data["customdata"] = data['nation']+'<br>' + data['index_name']+ " : "+data["close_price"].astype("str")
+    color = list(data[['color']].to_dict('list').values())[0]
+    customdata = []
+    for element in data['customdata']:
+        tmp = []
+        tmp.append(element)
+        customdata.append(tmp)
+    data = data.drop(['color','ticker','nation','index_name','base_date','fluctuation_rate','close_price'],axis=1)
+    data_dict = data.to_dict("list")
+    trace1 = {
+    "mode": "markers+text", 
+    "type": "scattergeo", 
+    "marker": {
+        "line": {"width": 1}, 
+        "size": 10, 
+        "color": color
+    }, 
+    "textfont": {
+        "size": 18, 
+        "color": color, 
+        "family": "Arial, sans-serif"
+    },
+    "customdata" : customdata,
+    "hovertemplate": "%{customdata[0]}",
+    }
+    data_dict.update(trace1)
+    data = Data([data_dict])
+
+    layout = {
+        "geo": {
+            "lataxis": {"range": [-10, 70]}, 
+            "lonaxis": {"range": [-125, 155]}
+        },
+        "margin": {"r":0,"t":0,"l":0,"b":0},
+        "title": "Canadian cities", 
+        "titlefont": {"size": 28}, 
+        "showlegend": False,
+        "width" : 1200,
+        "height" : 400,
+        "paper_bgcolor":"#d9d9d9",
+    }
+
+    fig = Figure(data=data, layout=layout)
+    plot_div = fig.to_html()
+    plot_div = plot_div.replace('<html>\n<head><meta charset="utf-8" /></head>\n<body>\n    <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: \'local\'};</script>\n        <script',"<script")
+    plot_div = plot_div.replace("</script>        </div>\n</body>\n</html>","</script>")
+    file = open('pm330\templates\pybo\mapbox.html','w',encoding='UTF-8')
+    file.write(plot_div)
+    file.close()
+
+def rollingbanner_maker():
+
+    yesterday = dm.YESTERDAY
+    just_yesterday = str(int(yesterday)-1)
+
+    dataframe = pd.DataFrame([])
+    ticker = ["^KS11","^N225","000001.SS","^HSI","^GSPC","^DJI","^IXIC","\^FTSE","^N100","^GDAXI","^FCHI"]
+    for i in range(len(ticker)):
+        tmp = ap.get_world_index(ticker[i],just_yesterday,yesterday)
+        tmp = pd.DataFrame(tmp)
+        dataframe = pd.concat([dataframe,tmp])
+    dataframe = dataframe[dataframe['base_date'] == yesterday][['ticker',"base_date","close_price","fluctuation_rate"]]
+    dataframe['fluctuation_rate'] = dataframe['fluctuation_rate']*100
+    dataframe['fluctuation_rate'] = dataframe['fluctuation_rate'].round(decimals = 2)
+    dataframe['close_price'] = round(dataframe['close_price']).astype("int")
+    trace1 = {
+    "ticker" : ["^KS11","^N225","399001.SZ","000001.SS","^HSI","^TWII","^GSPC","^DJI","^IXIC","^VIX","\^FTSE","^STOXX50E","^N100","^GDAXI","^FCHI"],
+    "index_name": ["KOSPI", "NIKKEI",  "SHENZHEN", "SSE", "HANGSENG", "TSEC", "S&P500", "DOW JONES", "NASDAQ", "VIX","FTSE 100", "ESTX 50", "EURONEXT", "DAX", "CAC 40"], 
+    }
+    data = pd.DataFrame(trace1)
+    data = pd.merge(data,dataframe)
+    data.drop(['ticker','base_date'],axis=1,inplace=True)
+    data = data.to_dict('list')
+    result = []
+    for i in range(len(data['index_name'])):
+        tmp = {'index_name':data['index_name'][i],'close_price':data['close_price'][i],'fluctuation_rate':data['fluctuation_rate'][i]}
+        result.append(tmp)
+        
+    html_code=""
+    for element in result:
+        if element["fluctuation_rate"] > 0:
+            code = f'<li class="{element["index_name"]}"><a href="#"><strong class="name" style="color : #60584C;">{element["index_name"]}</strong><span class="status up"><span class="num" style="color : #60584C;">{element["close_price"]}</span><span class="rate" style="color : #60584C;"><em>{element["fluctuation_rate"]}%</em></span></span></a></li>'
+        elif element["fluctuation_rate"] < 0:
+            code = f'<li class="{element["index_name"]}"><a href="#"><strong class="name" style="color : #60584C;">{element["index_name"]}</strong><span class="status down"><span class="num" style="color : #60584C;">{element["close_price"]}</span><span class="rate" style="color : #60584C;"><em>{element["fluctuation_rate"]}%</em></span></span></a></li>'
+        else:
+            code = f'<li class="{element["index_name"]}"><a href="#"><strong class="name" style="color : #60584C;">{element["index_name"]}</strong><span class="num" style="color : #60584C;">{element["close_price"]}</span><span class="rate" style="color : #60584C;"><em>{element["fluctuation_rate"]}%</em></span></span></a></li>'
+        html_code += code
+    file = open('pm330\templates\pybo\rolling_bar.html','w',encoding='UTF-8')
+    file.write(html_code)
+    file.close()

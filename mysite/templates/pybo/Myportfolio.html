@@ -8,61 +8,161 @@
        $("#insert").load("templates\pybo\piechart.html")
     });
 </script> -->
-<div class="container px-4 px-lg-5 h-100" style="margin-top: 5.5rem; display :flex; max-width: 1520px;">
-    <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center" style="flex : 45">
-        <div class="col-lg-8 align-self-end" style="width:100%">
-            <h1 class="font-weight-bold" style="font-size: 30; color:#60584c">{{ user.username }} 고객님의 포트폴리오</h1>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
+<body>
+    
+</body>
+<div style="margin-top: 7rem; display: grid; grid-template-columns: 5% 30% 30% 30% 5%; height: auto; min-height: 100%; padding-bottom: 3.3rem;">
+    <div style="align-items: center; justify-content: center; text-align: center; grid-column: 2;">
+        <div style="width: 100%; margin-top: 7rem;">
+            <h1 class="font-weight-bold" style="font-size: 2rem; color:#60584c">{{ user.username }} 고객님의 <br>포트폴리오</h1>
             <hr class="divider" />
         </div>
-        <div class="col-lg-8 align-self-baseline" style="width:85%;">
+        <div style="width: 50%; margin-left: 0.2rem;">
             {% autoescape off %}
             {{ plot_div }}
             {% endautoescape %}
         </div>
     </div>
-    <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center" style="flex : 25">
-        <div class="col-lg-8 align-self-end" style="width:100%">
-            <h1 class="font-weight-bold" style="font-size: 30; color:#60584c">포트폴리오 점수</h1>
+
+    <style>
+        #menu {
+            border: 1px solid #d8d8d8;
+            text-align: center;
+            }
+            #menu div {
+            position: relative;
+            display: inline-block;
+            }
+
+            span {
+            display: flex;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            }
+
+
+
+            /* 말풍선 적절한 top 과 margin-left 로 위치조정 */
+            .arrow_box {
+            display: none;
+            position: absolute;
+            width: 300px;
+            height: 250px;
+            padding: 8px;
+            top : 50px;
+       
+            -webkit-border-radius: 8px;
+            -moz-border-radius: 8px;
+            border-radius: 8px;
+            background: #333;
+            color: #fff;
+            font-size: 14px;
+            z-index: 1;
+            bottom: 120%;
+            left: -100%;
+            margin-left: -150px;
+            }
+
+            .arrow_box:after {
+            position: absolute;
+            width: 0;
+            height: 0;
+            margin-left: -40px;
+            border: solid transparent;
+            border-color: rgba(51, 51, 51, 0);
+            border-bottom-color: #333;
+            border-width: 10px;
+            pointer-events: none;
+            content: ' ';
+            top: -21.5px; 
+           left: 85%; 
+
+            }
+
+            span:hover + p.arrow_box {
+            display: block;
+            }
+    </style>
+
+
+
+
+    <div style="align-items: center; justify-content: center; text-align: center; grid-column: 3;">
+        <div style="width: 100%; margin-top: 7rem; align-self: end;">
+            <h1 class="font-weight-bold" style="font-size: 2rem; color:#60584c">포트폴리오 점수</h1>
             <hr class="divider" />
         </div>
-        <div class="col-lg-8 align-self-baseline align-items-center" style="display: flex; width: 60%;">
+        <div style="width: 100%; margin-top: 7rem; justify-content: center; align-self: baseline; align-items: center; display: flex">
             <img src={{tens}} width="100" height ="100" alt="9">
             <img src={{ones}} width="100" height ="100" alt="8">
             <h2 style="font-weight: 100; color: #60584c; font-size: 50px; padding-top: 3.5rem;">점</h2>
+            <div id="menu">
+                <div style="margin-top:65px;">
+                    <span>
+                        <img src="{% static 'assets/info1.png' %}">
+                    </span>
+                    <p class="arrow_box">
+                        0점:
+                        예금보다 낮은 수익률
+                        리밸런싱이 시급
+                        <br>
+                        <br>
+    
+                        1~40점:
+                        예금보단 나은 수익률
+                        변동성이 심한 장세에서 손실 입을 확률 높음
+                        <br>
+                        <br>
+    
+                        41~70점:
+                        예금에 비해 괜찮은 수익률
+                        감당하는 위험 대비 수익률 평이
+                        <br>
+                        <br>
+    
+                        71~100점:
+                        예금 대비 높은 수익률
+                        높은 수익률보다 낮은 위험도를 중시한다면
+                        피드백 페이지 추천 종목 편입 고려
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="row gx-4 gx-lg-5 h-100 align-items-center justify-content-center text-center" style="flex : 30">
-        <div class="col-lg-8 align-self-end" style="width:100%;">
-            <h1 class="font-weight-bold" style="font-size: 30; color:#60584c">내 종목 소식</h1>
+
+
+    <div style="align-items: center; justify-content: center; text-align: center; grid-column: 4;">
+        <div style="width: 100%; margin-top: 7rem;">
+            <h1 class="font-weight-bold" style="font-size: 2rem; color:#60584c">내 종목 소식</h1>
             <hr class="divider" />
         </div>
-        <div class="col-lg-8 align-self-baseline align-items-justify">
-            <table style= "width:100%">
-            <tr class="text-white-75" style="font-size: 25px;" >
-                <td><a href= "https://finance.naver.com/item/news.naver?code=005930" target="_blank" style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">삼성전자</a></td>
-                <td><a href="{% url 'pybo:News' %}" style="color:#da1313;text-align: right; float:right;text-decoration-line:none">호재</a></td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px;" >
-                <td><a href= "https://finance.naver.com/item/news.naver?code=035720" target="_blank"style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">카카오</a></td>
-                <td><a href="{% url 'pybo:News' %}" style="color:#da1313; text-align: right; float:right; text-decoration-line:none">호재</a></td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px;" >
-                <td><a href= "https://finance.naver.com/item/news.naver?code=035420" target="_blank"style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">네이버</a></td>
-                <td><a href="{% url 'pybo:News' %}" style="color:#da1313; text-align: right; float:right; text-decoration-line:none">호재</a></td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px;" >
-                <td><a href= "https://finance.naver.com/item/news.naver?code=005490" target="_blank"style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">포스코</a></td>
-                <td><a href="{% url 'pybo:News' %}" style="color:#0f1e8e; text-align: right; float:right; text-decoration-line:none">악재</a></td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px;" >
-                <td><a href= "https://finance.naver.com/item/news.naver?code=068270" target="_blank"style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">셀트리온</a></td>
-                <td><a href="{% url 'pybo:News' %}" style="color:#0f1e8e; text-align: right; float:right;text-decoration-line:none">악재</a></td>
-            </tr>
-            <tr class="text-white-75" style="font-size: 25px;" >
-                <td><a href= "https://finance.naver.com/item/news.naver?code=326030" target="_blank"style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">SK바이오팜</a></td>
-                <td><a href="{% url 'pybo:News' %}" style="color:#0f1e8e; text-align: right; float:right;text-decoration-line:none">악재</a></td>
-            </tr>
-            </table>       
+        <div style="width: 100%; margin-top: 7rem; text-align: center;">
+            <table style= "width: 60%; margin: auto;">
+            {% for result in result_dict %}
+                {% if result.determinant == '호재' %}
+                <tr class="text-white-75" style="font-size: 20px;">
+                    <td><a href= "https://finance.naver.com/item/news.naver?code={{result.short_isin}}" target="_blank" style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">{{result.stock_name}}</a></td>
+                    <td><a href="{% url 'pybo:News' result.short_isin %}" style="color:#da1313;text-align: right; float:right;text-decoration-line:none">{{result.determinant}}</a></td>
+                    <td><p style="color:#da1313;text-align: right; float:right;text-decoration-line:none">{{result.total}}%</p></td>
+                </tr>
+                {% elif result.determinant == '악재' %}
+                <tr class="text-white-75" style="font-size: 20px;">
+                    <td><a href= "https://finance.naver.com/item/news.naver?code={{result.short_isin}}" target="_blank" style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">{{result.stock_name}}</a></td>
+                    <td><a href="{% url 'pybo:News' result.short_isin %}" style="color:#0f1e8e;text-align: right; float:right;text-decoration-line:none">{{result.determinant}}</a></td>
+                    <td><p style="color:#0f1e8e;text-align: right; float:right;text-decoration-line:none">{{result.total}}%</p></td>
+                </tr>
+                {% else %}
+                <tr class="text-white-75" style="font-size: 20px;">
+                    <td><a href= "https://finance.naver.com/item/news.naver?code={{result.short_isin}}" target="_blank" style="text-align: left;float:left; color:#60584c; text-decoration-line:none;">{{result.stock_name}}</a></td>
+                    <td><a href="{% url 'pybo:News' result.short_isin %}" style="color:#60584c;text-align: right; float:right;text-decoration-line:none">{{result.determinant}}</a></td>
+                    <td><p style="color:#60584c;text-align: right; float:right;text-decoration-line:none">{{result.total}}%</p></td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+            </table>
+
         </div>
     </div>
 </div>

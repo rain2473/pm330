@@ -14,13 +14,13 @@
                     {% if result.determinant == '호재' %}
                         <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
                             <td class="col-8" style="text-align: center; color:#60584c;">{{ result.headline }}</td>
-                            <td class="determinant col-2" style="text-align: center; color:#ff0000;">{{ result.determinant }}</td>
+                            <td class="determinant col-2" style="text-align: center; color:#da1313;">{{ result.determinant }}</td>
                             <td class="col-2" style="text-align: center; color:#60584c;">{{ result.sentiment }}%</td>
                         </tr>
                     {% elif result.determinant == '악재' %}
                         <tr class="text-white-75" style="font-size: 25px; height: 80px;" >
                             <td class="col-8" style="text-align: center; color:#60584c;">{{ result.headline }}</td>
-                            <td class="determinant col-2" style="text-align: center; color:#0000ff;">{{ result.determinant }}</td>
+                            <td class="determinant col-2" style="text-align: center; color:#0f1e8e;">{{ result.determinant }}</td>
                             <td class="col-2" style="text-align: center; color:#60584c;">{{ result.sentiment }}%</td>
                         </tr>
                     {% else %}

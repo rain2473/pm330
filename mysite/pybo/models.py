@@ -8,10 +8,8 @@ class Stocks(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     subject = models.CharField(max_length=20)
-    now_price = models.IntegerField()
-    avg_price = models.IntegerField()
+    avg_price = models.FloatField()
     quantity = models.IntegerField()
-    create_date = models.DateTimeField()
 
     def __str__(self):
         return self.subject

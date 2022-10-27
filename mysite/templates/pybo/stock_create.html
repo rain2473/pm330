@@ -27,11 +27,6 @@
                        value="{{ form.subject.value|default_if_none:'' }}">
             </div>
             <div class="mb-3">
-                <label for="subject" class="form-label" style="color: #60584c;">현재가</label>
-                <input type="number" class="form-control" name="now_price" id="now_price"
-                       value="{{ form.now_price.value|default_if_none:'' }}">
-            </div>
-            <div class="mb-3">
                 <label for="subject" class="form-label" style="color: #60584c;">평단가</label>
                 <input type="number" class="form-control" name="avg_price" id="avg_price"
                        value="{{ form.avg_price.value|default_if_none:'' }}">
@@ -41,11 +36,7 @@
                 <input type="number" class="form-control" name="quantity" id="quantity"
                        value="{{ form.quantity.value|default_if_none:'' }}">
             </div>
-            <div class="mb-3">
-                <label for="subject" class="form-label" style="color: #60584c;">매수날짜</label>
-                <input type="date" class="form-control" name="create_date" id="create_date"
-                       value="{{ form.create_date.value|default_if_none:'' }}">
-            </div>
+
 
             <button type="submit" class="btn btn-primary btn-xl"
                 style="padding: 0.5rem 1rem; font-size: 1.2rem; color : #60584C">저장하기
