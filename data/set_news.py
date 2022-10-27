@@ -1,6 +1,6 @@
 # Author      : 조익준
 # Contact     : harry960629@naver.com
-# Date        : 2022-10-26(수)
+# Date        : 2022-10-27(목)
 
 # [Description]
 # - 한 종목에 대한 최신 뉴스 50개를 웹 크롤링을 통해 추출하여 뉴스 기사를 fine-tunning한 kb-albert 모델로 호재, 악재를 분석한다.
@@ -83,13 +83,18 @@ def get_data(isin_code:str, short_isin_code:str):
         for i in range(len(items)):
             url2 = 'https://finance.naver.com' + items[i]['href']
             res_items = requests.get(url2)
-            # frame_items = BeautifulSoup(res_items.content, 'html.parser', from_encoding='utf-8')
             frame_items = BeautifulSoup(res_items.content.decode('euc-kr','replace'), 'html.parser')
+
             newsheadline = frame_items.select_one('strong.c').get_text()
-            # rule = newsheadline.maketrans('')
-            newsheadline = newsheadline.replace("'", " ")
-            # newsheadline = newsheadline.replace('"', " ")
             newsdate = ''.join(frame_items.select_one('span.tah').get_text().split('.')).strip()[:8]
+
+            # Ignore Empty News
+            if (newsheadline is None) or (newsdate is None):
+                continue
+
+            # Quotation 제거
+            newsheadline = newsheadline.replace("'", " ")
+            
             data_list.append([isin_code, newsdate, newsheadline, na.get_score(newsheadline)])   # [isin_code, write_date, headline, sentiment]
 
     return data_list
