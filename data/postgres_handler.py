@@ -169,7 +169,7 @@ class PostgresHandler():
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
 
-        if data is None:
+        if (data is None) or (len(data) == 0):
             raise f"[ERROR] Empty Data Insertion: data is empty"
 
         values = ""
@@ -201,7 +201,7 @@ class PostgresHandler():
         if (table not in LIST_TABLE_NAME) or (table is None):
             raise f"[ERROR] Invalid Table Name: {table} does not exist"
 
-        if data is None:
+        if (data is None) or (len(data) == 0):
             raise f"[ERROR] Empty Data Insertion: data is empty"
 
         value_list = []
@@ -462,7 +462,7 @@ class PostgresHandler():
 
         try:
             # Clear Table
-            # self.delete_item(table='news_info')
+            self.delete_item(table='news_info')
 
             # Listing Stocks
             if market_category == 'ALL':
@@ -485,6 +485,10 @@ class PostgresHandler():
             for kr_stock in krx_listed_info:
 
                 raw_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
+
+                if len(raw_news) == 0:
+                    continue
+
                 list_news = list()
                 for news in raw_news:
                     data = dict()
