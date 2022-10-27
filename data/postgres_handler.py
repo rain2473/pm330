@@ -14,7 +14,7 @@ import psycopg2    # Command to install: "pip install psycopg2-binary"
 import conn_config      as config
 import api_handler      as api
 import data_manipulator as dm
-import set_news         as news
+# import set_news         as news
 
 
 
@@ -455,14 +455,14 @@ class PostgresHandler():
         False : 오류가 발생한 경우
         """
 
-        # DBA Only can run initial building function
-        if(self.conn_user != config.ID_DBA):
-            print("Only DBA can run the build function")
+        # Only authorized developer can run initial building function
+        if(self.conn_user not in [config.ID_DBA, config.ID_IJ]):
+            print("Only authorized developer can run the build function")
             return False
 
         try:
             # Clear Table
-            self.delete_item(table='news_info')
+            # self.delete_item(table='news_info')
 
             # Listing Stocks
             if market_category == 'ALL':
@@ -505,44 +505,44 @@ class PostgresHandler():
         WORLD_INDEX_TICKERS = [
 
             # Primary Indices below:
-            {'ticker':'^GSPC',     'nation':'US',          'index_name':'S&P 500',                      'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^DJI',      'nation':'US',          'index_name':'Dow Jones Industrial Average', 'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^IXIC',     'nation':'US',          'index_name':'NASDAQ Composite',             'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^VIX',      'nation':'US',          'index_name':'Vix',                          'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^GDAXI',    'nation':'Germany',     'index_name':'DAX PERFORMANCE-INDEX',        'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^FCHI',     'nation':'France',      'index_name':'CAC 40',                       'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^N100',     'nation':'France',      'index_name':'Euronext 100 Index',           'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^N225',     'nation':'Japan',       'index_name':'Nikkei 225',                   'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^HSI',      'nation':'Taiwan',      'index_name':'HANG SENG INDEX',              'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'000001.SS', 'nation':'China',       'index_name':'SSE Composite Index',          'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'399001.SZ', 'nation':'China',       'index_name':'Shenzhen Index',               'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^KS11',     'nation':'Korea',       'index_name':'KOSPI Composite Index',        'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^GSPC',     'nation':'US',          'index_name':'S&P 500',                      'latitude':39.1, 'longtitude':-118.3},
+            {'ticker':'^DJI',      'nation':'US',          'index_name':'Dow Jones Industrial Average', 'latitude':38.7, 'longtitude':-94.2},
+            {'ticker':'^IXIC',     'nation':'US',          'index_name':'NASDAQ Composite',             'latitude':42.5, 'longtitude':-74.1},
+            {'ticker':'^VIX',      'nation':'US',          'index_name':'Vix',                          'latitude':44.1, 'longtitude':-84.2},
+            {'ticker':'^STOXX50E', 'nation':'Europe',      'index_name':'ESTX 50 PR.EUR',               'latitude':41.9, 'longtitude':13.5},
+            {'ticker':'\^FTSE',    'nation':'UK',          'index_name':'FTSE 100',                     'latitude':53.5, 'longtitude':-2.1},
+            {'ticker':'^GDAXI',    'nation':'Germany',     'index_name':'DAX PERFORMANCE-INDEX',        'latitude':52.8, 'longtitude':10.45},
+            {'ticker':'^FCHI',     'nation':'France',      'index_name':'CAC 40',                       'latitude':48.2, 'longtitude':4.3},
+            {'ticker':'^N100',     'nation':'France',      'index_name':'Euronext 100 Index',           'latitude':46.4, 'longtitude':2.1},
+            {'ticker':'000001.SS', 'nation':'China',       'index_name':'SSE Composite Index',          'latitude':29.1, 'longtitude':119.2},
+            {'ticker':'399001.SZ', 'nation':'China',       'index_name':'Shenzhen Index',               'latitude':37.1, 'longtitude':116.5},
+            {'ticker':'^N225',     'nation':'Japan',       'index_name':'Nikkei 225',                   'latitude':36.4, 'longtitude':138.24},
+            {'ticker':'^KS11',     'nation':'Korea',       'index_name':'KOSPI Composite Index',        'latitude':37.5, 'longtitude':128.00},
+            {'ticker':'^HSI',      'nation':'Taiwan',      'index_name':'HANG SENG INDEX',              'latitude':22.1, 'longtitude':120.1},
+            {'ticker':'^TWII',     'nation':'Taiwan',      'index_name':'TSEC weighted index',          'latitude':24.4, 'longtitude':121.3},
 
             # Secondary Indices below:
-            {'ticker':'^BUK100P',  'nation':'UK',          'index_name':'Cboe UK 100',                  'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^NYA',      'nation':'US',          'index_name':'NYSE COMPOSITE (DJ)',          'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^XAX',      'nation':'US',          'index_name':'NYSE AMEX COMPOSITE INDEX',    'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^RUT',      'nation':'US',          'index_name':'Russell 2000',                 'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'\^FTSE',    'nation':'UK',          'index_name':'FTSE 100',                     'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^STOXX50E', 'nation':'Europe',      'index_name':'ESTX 50 PR.EUR',               'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^BFX',      'nation':'Belgium',     'index_name':'BEL 20',                       'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'IMOEX.ME',  'nation':'Russia',      'index_name':'MOEX Russia Index',            'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'\^STI',     'nation':'Singapore',   'index_name':'STI Index',                    'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^AXJO',     'nation':'Australia',   'index_name':'S&P/ASX 200',                  'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^AORD',     'nation':'Australia',   'index_name':'ALL ORDINARIES',               'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^BSESN',    'nation':'India',       'index_name':'S&P BSE SENSEX',               'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^JKSE',     'nation':'Indonesia',   'index_name':'Jakarta Composite Index',      'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'\^KLSE',    'nation':'Malaysia',    'index_name':'FTSE Bursa Malaysia KLCI',     'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^NZ50',     'nation':'New Zealand', 'index_name':'S&P/NZX 50 INDEX GROSS',       'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^TWII',     'nation':'Taiwan',      'index_name':'TSEC weighted index',          'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^GSPTSE',   'nation':'Canada',      'index_name':'S&P/TSX Composite index',      'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^BVSP',     'nation':'Brazil',      'index_name':'IBOVESPA',                     'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^MXX',      'nation':'Mexico',      'index_name':'IPC MEXICO',                   'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^IPSA',     'nation':'Chile',       'index_name':'S&P/CLX IPSA',                 'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^MERV',     'nation':'Argentina',   'index_name':'MERVAL',                       'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^TA125.TA', 'nation':'Israel',      'index_name':'TA-125',                       'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^CASE30',   'nation':'Egypt',       'index_name':'EGX 30 Price Return Index',    'latitude':12.3, 'longtitude':45.6},
-            {'ticker':'^JN0U.JO',  'nation':'Republic of South Africa', 'index_name':'Top 40 USD Net TRI Index', 'latitude':12.3, 'longtitude':45.6},
+            {'ticker':'^BUK100P',  'nation':'UK',          'index_name':'Cboe UK 100',                  'latitude':None, 'longtitude':None},
+            {'ticker':'^NYA',      'nation':'US',          'index_name':'NYSE COMPOSITE (DJ)',          'latitude':None, 'longtitude':None},
+            {'ticker':'^XAX',      'nation':'US',          'index_name':'NYSE AMEX COMPOSITE INDEX',    'latitude':None, 'longtitude':None},
+            {'ticker':'^RUT',      'nation':'US',          'index_name':'Russell 2000',                 'latitude':None, 'longtitude':None},
+            {'ticker':'^BFX',      'nation':'Belgium',     'index_name':'BEL 20',                       'latitude':None, 'longtitude':None},
+            {'ticker':'IMOEX.ME',  'nation':'Russia',      'index_name':'MOEX Russia Index',            'latitude':None, 'longtitude':None},
+            {'ticker':'\^STI',     'nation':'Singapore',   'index_name':'STI Index',                    'latitude':None, 'longtitude':None},
+            {'ticker':'^AXJO',     'nation':'Australia',   'index_name':'S&P/ASX 200',                  'latitude':None, 'longtitude':None},
+            {'ticker':'^AORD',     'nation':'Australia',   'index_name':'ALL ORDINARIES',               'latitude':None, 'longtitude':None},
+            {'ticker':'^BSESN',    'nation':'India',       'index_name':'S&P BSE SENSEX',               'latitude':None, 'longtitude':None},
+            {'ticker':'^JKSE',     'nation':'Indonesia',   'index_name':'Jakarta Composite Index',      'latitude':None, 'longtitude':None},
+            {'ticker':'\^KLSE',    'nation':'Malaysia',    'index_name':'FTSE Bursa Malaysia KLCI',     'latitude':None, 'longtitude':None},
+            {'ticker':'^NZ50',     'nation':'New Zealand', 'index_name':'S&P/NZX 50 INDEX GROSS',       'latitude':None, 'longtitude':None},
+            {'ticker':'^GSPTSE',   'nation':'Canada',      'index_name':'S&P/TSX Composite index',      'latitude':None, 'longtitude':None},
+            {'ticker':'^BVSP',     'nation':'Brazil',      'index_name':'IBOVESPA',                     'latitude':None, 'longtitude':None},
+            {'ticker':'^MXX',      'nation':'Mexico',      'index_name':'IPC MEXICO',                   'latitude':None, 'longtitude':None},
+            {'ticker':'^IPSA',     'nation':'Chile',       'index_name':'S&P/CLX IPSA',                 'latitude':None, 'longtitude':None},
+            {'ticker':'^MERV',     'nation':'Argentina',   'index_name':'MERVAL',                       'latitude':None, 'longtitude':None},
+            {'ticker':'^TA125.TA', 'nation':'Israel',      'index_name':'TA-125',                       'latitude':None, 'longtitude':None},
+            {'ticker':'^CASE30',   'nation':'Egypt',       'index_name':'EGX 30 Price Return Index',    'latitude':None, 'longtitude':None},
+            {'ticker':'^JN0U.JO',  'nation':'Republic of South Africa', 'index_name':'Top 40 USD Net TRI Index', 'latitude':None, 'longtitude':None},
         ]
 
         # DBA Only can run initial building function
@@ -1181,6 +1181,3 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] get_index_name_by_ticker Error: {err_msg}")
             return False        
-
-pgdb = PostgresHandler(user='byeong_heon', password='kbitacademy')
-pgdb.build_news_info(market_category='KOSPI')
