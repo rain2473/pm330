@@ -14,10 +14,7 @@ import news_albert      as na
 import pandas           as pd
 
 from bs4  import BeautifulSoup
-# from . import postgres_handler as pg
-# from . import conn_config      as config
-import postgres_handler as pg
-import conn_config      as config
+
 
 
 # Function Declaration
@@ -96,11 +93,3 @@ def get_data(isin_code:str, short_isin_code:str):
             data_list.append([isin_code, newsdate, newsheadline, na.get_score(newsheadline)])   # [isin_code, write_date, headline, sentiment]
 
     return data_list
-
-
-pgdb = pg.PostgresHandler(user='byeong_heon', password='kbitacademy')
-krx_list = pgdb.get_all_data(table='basic_stock_info')
-print(krx_list)
-
-# for krx in krx_list:
-    pgdb.set_multiple_news(news_list=get_data(isin_code=krx['isin_code'], short_isin_code=krx['short_isin_code']))
