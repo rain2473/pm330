@@ -33,8 +33,7 @@ import json     # JSON Parser
 from abc              import abstractmethod
 from datetime         import datetime, timedelta
 from webbrowser       import get
-# from .                import data_manipulator as dm
-import data_manipulator as dm
+from .                import data_manipulator as dm
 
 
 
