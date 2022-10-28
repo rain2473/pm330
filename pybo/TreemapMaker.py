@@ -8,8 +8,7 @@ from symbol import import_from
 import pandas                                       as pd
 import numpy                                        as np
 import plotly.graph_objects                         as go
-from tkinter                                        import Tk
-from _tkinter                                       import TclError
+import pyperclip
 from selenium                                       import webdriver
 from plotly.offline                                import plot
 from selenium.webdriver.common.keys                 import Keys
@@ -67,19 +66,8 @@ def get_clipboard():
     '''
     # 페이지 복사 함수 실행
     created_time = copy_page()
-    # tkinter 모듈의 Tk() 호출
-    root = Tk()
-    # 외부 윈도우 창을 화면에서 제거
-    root.withdraw()
-    # result 객체를 선언함.
-    result = None
-    # 클립보드의 내용을 result 객체에 저장하는 것을 시도함.
-    try:
-        result = root.clipboard_get()
-    # 클립보드가 비어있는 경우 오류코드를 보여줌.
-    except TclError as e:
-        print('클립보드 데이터가 비어있음')
     # 클립보드를 문자열로 반환함.
+    result = pyperclip.paste()
     return result, created_time
 
 def make_list():
