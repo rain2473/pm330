@@ -10,12 +10,12 @@ import requests
 import pandas as pd
 
 from bs4                   import BeautifulSoup
-from tokenization_kbalbert import KbAlbertCharTokenizer
+from .                     import tokenization_kbalbert as tk
 from transformers          import AlbertForSequenceClassification
 from transformers          import pipeline
 
 # 토크나이저 설정
-tokenizer = KbAlbertCharTokenizer.from_pretrained('news_albert')
+tokenizer = tk.KbAlbertCharTokenizer.from_pretrained('news_albert')
 
 # 모델 설정
 model = AlbertForSequenceClassification.from_pretrained('news_albert')
