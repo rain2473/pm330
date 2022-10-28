@@ -10,7 +10,7 @@
 
 # Required Modules
 import requests
-import news_albert      as na
+from . import news_albert      as na
 import pandas           as pd
 
 from bs4  import BeautifulSoup
