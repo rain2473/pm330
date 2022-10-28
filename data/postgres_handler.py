@@ -7,14 +7,10 @@
 # Required Modules
 import psycopg2    # Command to install: "pip install psycopg2-binary"
 
-# from . import conn_config      as config
-# from . import api_handler      as api
-# from . import data_manipulator as dm
-# from . import set_news         as news
-import conn_config      as config
-import api_handler      as api
-import data_manipulator as dm
-import set_news         as news
+from . import conn_config      as config
+from . import api_handler      as api
+from . import data_manipulator as dm
+from . import set_news         as news
 
 
 
