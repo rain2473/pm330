@@ -93,7 +93,7 @@ typing_extensions==4.4.0
 tzdata==2022.4
 urllib3==1.26.12
 Werkzeug==2.0.3
-# whitenoise==6.2.0
+whitenoise==6.2.0
 wrapt==1.14.1
 wsproto==1.2.0
 xlrd==2.0.1
