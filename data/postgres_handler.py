@@ -10,7 +10,7 @@ import psycopg2    # Command to install: "pip install psycopg2-binary"
 from . import conn_config      as config
 from . import api_handler      as api
 from . import data_manipulator as dm
-from . import set_news         as news
+# from . import set_news         as news
 
 
 
@@ -439,65 +439,65 @@ class PostgresHandler():
         except Exception as err_msg:
             print(f"[ERROR] build_financial_info Error: {err_msg}")
 
-    def build_news_info(self, market_category:str='ALL'):
-        """
-        데이터베이스의 news_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 주가정보들을 저장한다.
-        ※ 본 메서드는 DBA만 수행할 수 있다.
+    # def build_news_info(self, market_category:str='ALL'):
+    #     """
+    #     데이터베이스의 news_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 주가정보들을 저장한다.
+    #     ※ 본 메서드는 DBA만 수행할 수 있다.
         
-        [Parameters]
-        market_category (str) : 주가정보를 가져올 종목들의 상장 시장 (default='ALL') ('KOSPI':코스피 | 'KOSDAQ':코스닥 | 'KONEX':코넥스)
+    #     [Parameters]
+    #     market_category (str) : 주가정보를 가져올 종목들의 상장 시장 (default='ALL') ('KOSPI':코스피 | 'KOSDAQ':코스닥 | 'KONEX':코넥스)
         
-        [Returns]
-        False : 오류가 발생한 경우
-        """
+    #     [Returns]
+    #     False : 오류가 발생한 경우
+    #     """
 
-        # Only authorized developer can run initial building function
-        if(self.conn_user not in [config.ID_DBA, config.ID_IJ]):
-            print("Only authorized developer can run the build function")
-            return False
+    #     # Only authorized developer can run initial building function
+    #     if(self.conn_user not in [config.ID_DBA, config.ID_IJ]):
+    #         print("Only authorized developer can run the build function")
+    #         return False
 
-        try:
-            # Clear Table
-            self.delete_item(table='news_info')
+    #     try:
+    #         # Clear Table
+    #         self.delete_item(table='news_info')
 
-            # Listing Stocks
-            if market_category == 'ALL':
-                rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'market_category'])
-            elif market_category in MARKET_CATEGORIES:
-                condition = f"market_category = CAST('{market_category}' AS {TYPE_basic_stock_info['market_category']})"
-                rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'short_isin_code'], condition=condition)
-            else:
-                print(f"[ERROR] Invalid parameter: market_category: {market_category}")
-                return False
+    #         # Listing Stocks
+    #         if market_category == 'ALL':
+    #             rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'market_category'])
+    #         elif market_category in MARKET_CATEGORIES:
+    #             condition = f"market_category = CAST('{market_category}' AS {TYPE_basic_stock_info['market_category']})"
+    #             rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'short_isin_code'], condition=condition)
+    #         else:
+    #             print(f"[ERROR] Invalid parameter: market_category: {market_category}")
+    #             return False
 
-            # Parsing
-            krx_listed_info = list()
-            for row in rows:
-                data = dict()
-                data['isin_code'] = row[0][1:-1].split(',')[0]
-                data['short_isin_code'] = row[0][1:-1].split(',')[1]
-                krx_listed_info.append(data)
+    #         # Parsing
+    #         krx_listed_info = list()
+    #         for row in rows:
+    #             data = dict()
+    #             data['isin_code'] = row[0][1:-1].split(',')[0]
+    #             data['short_isin_code'] = row[0][1:-1].split(',')[1]
+    #             krx_listed_info.append(data)
 
-            for kr_stock in krx_listed_info:
+    #         for kr_stock in krx_listed_info:
 
-                raw_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
+    #             raw_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
 
-                if len(raw_news) == 0:
-                    continue
+    #             if len(raw_news) == 0:
+    #                 continue
 
-                list_news = list()
-                for news in raw_news:
-                    data = dict()
-                    data['isin_code'] = news[0]
-                    data['write_code'] = news[1]
-                    data['headline'] = news[2]
-                    data['sentiment'] = float(news[3])
-                    list_news.append(data)
+    #             list_news = list()
+    #             for article in raw_news:
+    #                 data = dict()
+    #                 data['isin_code'] = article[0]
+    #                 data['write_code'] = article[1]
+    #                 data['headline'] = article[2]
+    #                 data['sentiment'] = float(article[3])
+    #                 list_news.append(data)
 
-                self.insert_items(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=list_news)
+    #             self.insert_items(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=list_news)
         
-        except Exception as err_msg:
-            print(f"[ERROR] build_news_info Error: {err_msg}")
+    #     except Exception as err_msg:
+    #         print(f"[ERROR] build_news_info Error: {err_msg}")
 
     def build_world_index_info(self):
         """
