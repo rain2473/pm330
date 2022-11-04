@@ -44,4 +44,4 @@
 <br />
 
 # :triangular_ruler: Database Schema (데이터베이스 구조) 
-![Screenshot](/data/Schema.png)
+![Screenshot](Schema.png)

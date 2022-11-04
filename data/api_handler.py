@@ -23,7 +23,6 @@
 
 
 # Required Modules
-import pandas                as pd
 import pandas_datareader     as pdr
 import xml.etree.ElementTree as et # XML Parser
 
@@ -32,7 +31,6 @@ import json     # JSON Parser
 
 from abc              import abstractmethod
 from datetime         import datetime, timedelta
-from webbrowser       import get
 from .                import data_manipulator as dm
 
 
@@ -55,9 +53,9 @@ URL_ISSUCO_CUSTNO_BY_SHORT_ISIN = "http://api.seibro.or.kr/openapi/service/CorpS
 
 # * * *   The number of Maximum Items in Korea Stock Exchange (KOSPI/KOSDAQ/KONEX)   * * *
 # http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
-KOSPI_ITEMS   = 940
-KOSDAQ_ITEMS  = 1592
-KONEX_ITEMS   = 125
+KOSPI_ITEMS   = 941
+KOSDAQ_ITEMS  = 1603
+KONEX_ITEMS   = 126
 ALL_STOCKS_KR = KOSPI_ITEMS + KOSDAQ_ITEMS + KONEX_ITEMS
 
 # * * *   The number of Maximum Corporations in Korea   * * *
@@ -272,7 +270,7 @@ def get_stoc_issu_stat(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, result
 
     return item
 
-def get_krx_listed_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resultType="json", basDt="", beginBasDt="", endBasDt="", likeBasDt="", likeSrtnCd="", isinCd="", likeIsinCd="", itmsNm="", likeItmsNm="", crno="", corpNm="", likeCorpNm=""):
+def get_krx_listed_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resultType="json", basDt=dm.YESTERDAY, beginBasDt="", endBasDt="", likeBasDt="", likeSrtnCd="", isinCd="", likeIsinCd="", itmsNm="", likeItmsNm="", crno="", corpNm="", likeCorpNm=""):
     """
     금융위원회_KRX상장종목정보 검색 결과를 반환한다.
     * 금융위원회_KRX상장종목정보 (https://www.data.go.kr/data/15094775/openapi.do)
@@ -280,9 +278,9 @@ def get_krx_listed_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resul
     [Parameters]
     serviceKey (str) : 공공데이터 포털에서 받은 인증키 (Mandatory)
     pageNo     (int) : 페이지 번호 (Default: 1)
-    numOfRows  (int) : 한 페이지 결과 수 (Default: ALL_STOCKS_KR (한국시장 전체 종목 수))
+    numOfRows  (int) : 한 페이지 결과 수 (Default: ALL_STOCKS_KR; KOSPI, KOSDAQ, KONEX에 상장된 전 종목수)
     resultType (str) : 구분 (xml, json) (Default: json)
-    basDt      (str) : 검색값과 기준일자가 일치하는 데이터를 검색 (Default: "")
+    basDt      (str) : 검색값과 기준일자가 일치하는 데이터를 검색 (Default: YESTERDAY; 전일)
     beginBasDt (str) : 기준일자가 검색값보다 크거나 같은 데이터를 검색 (Default: "")
     endBasDt   (str) : 기준일자가 검색값보다 작은 데이터를 검색 (Default: "")
     likeBasDt  (str) : 기준일자값이 검색값을 포함하는 데이터를 검색 (Default: "")
