@@ -1,7 +1,7 @@
 
 # Author      : 이병헌
 # Contact     : lww7438@gmail.com
-# Date        : 2022-10-25(화)
+# Date        : 2022-11-05(토)
 
 # [Description]
 #
@@ -19,6 +19,7 @@
 # - 한국예탁결제원_기업정보서비스: 기업기본정보 기업개요 조회
 # - 한국예탁결제원_기업정보서비스: 단축번호로 발행회사번호 조회
 # - pandas-datareader
+# - PyKrx
 
 
 
@@ -29,11 +30,9 @@ import xml.etree.ElementTree as et # XML Parser
 import requests
 import json     # JSON Parser
 
-from abc              import abstractmethod
 from pykrx            import stock
 from datetime         import datetime, timedelta
-# from .                import data_manipulator as dm
-import data_manipulator as dm
+from .                import data_manipulator as dm
 
 
 
@@ -62,57 +61,6 @@ ALL_STOCKS_KR = KOSPI_ITEMS + KOSDAQ_ITEMS + KONEX_ITEMS
 
 # * * *   The number of Maximum Corporations in Korea   * * *
 ALL_CORPS = 160000
-
-
-
-# Class Declaration
-class Get:
-    def __init__(self):
-        self.headers = {"User-Agent": "Mozilla/5.0"}
-
-    def read(self, **params):
-        resp = requests.get(self.url, headers=self.headers, params=params)
-        return resp
-
-    @property
-    @abstractmethod
-    def url(self):
-        return NotImplementedError
-
-class Post:
-    def __init__(self, headers=None):
-        self.headers = {"User-Agent": "Mozilla/5.0"}
-        if headers is not None:
-            self.headers.update(headers)
-
-    def read(self, **params):
-        resp = requests.post(self.url, headers=self.headers, data=params)
-        return resp
-
-    @property
-    @abstractmethod
-    def url(self):
-        return NotImplementedError
-
-class NaverWebIo(Get):
-    @property
-    def url(self):
-        return "http://fchart.stock.naver.com/sise.nhn"
-
-class Sise(NaverWebIo):
-    @property
-    def uri(self):
-        return "/sise.nhn"
-
-    def fetch(self, ticker, count, timeframe='day'):
-        """
-        :param ticker:
-        :param count:
-        :param timeframe: day/week/month
-        :return:
-        """
-        result = self.read(symbol=ticker, timeframe=timeframe, count=count, requestType="0")
-        return result.text
 
 
 
@@ -937,63 +885,55 @@ def get_market_ohlcv_by_date(short_isin_code:str, start_date:str='20000101', end
 
     [Returns]
     list : 주가에 대한 정보 (list of dict)
-        base_date        (string)  : 기준일자
-        short_isin_code  (string)  : 국제 증권 식별 번호 (축약형, 6자리)
-        market_price     (integer) : 시가
-        close_price      (integer) : 종가
-        high_price       (integer) : 고가
-        low_price        (integer) : 저가
-        fluctuation      (integer) : 등락
-        fluctuation_rate (float)   : 등락률
-        volume           (integer) : 거래량
+        base_date        (str)   : 기준일자
+        short_isin_code  (str)   : 국제 증권 식별 번호 (축약형, 6자리)
+        market_price     (int)   : 시가
+        close_price      (int)   : 종가
+        high_price       (int)   : 고가
+        low_price        (int)   : 저가
+        fluctuation      (int)   : 등락
+        fluctuation_rate (float) : 등락률
+        volume           (int)   : 거래량
 
     None : 요청에 실패한 경우
     """
 
-    start_date = datetime.strptime(start_date, '%Y%m%d')
-    end_date = datetime.strptime(end_date, '%Y%m%d')    
-    today = datetime.now()
-    elapsed = today - start_date + timedelta(days=1)
-
-    xml = Sise().fetch(short_isin_code, elapsed.days)
-
-    result = []
     try:
-        columns = ['base_date', 'market_price', 'high_price', 'low_price', 'close_price', 'volume']
-        idx = 0
-        for node in et.fromstring(xml).iter(tag='item'):
-            raw_ohlcv = node.get('data')
-            raw_ohlcv = raw_ohlcv.split("|")
+        response = stock.get_market_ohlcv_by_date(fromdate=start_date, todate=end_date, ticker=short_isin_code, adjusted=False, name_display=False).to_dict(orient='index')
+        
+        output = list()
 
-            row = {}
-            for value, column in zip(raw_ohlcv, columns):
-                if column in ['market_price', 'close_price', 'high_price', 'low_price', 'volume']:
-                    row[column] = int(value)
-                else:
-                    row[column] = value
+        for base_date, ohlcv in response.items():
+            row = dict()
 
+            # Column Renaming
+            row['base_date'] = base_date.strftime('%Y%m%d')
             row['short_isin_code'] = short_isin_code
+            row['market_price'] = ohlcv.pop('시가', None)
+            row['close_price'] = ohlcv.pop('종가', None)
+            row['high_price'] = ohlcv.pop('고가', None)
+            row['low_price'] = ohlcv.pop('저가', None)
+            row['fluctuation_rate'] = ohlcv.pop('등락률', None)
+            row['volume'] = ohlcv.pop('거래량', None)
+            output.append(row)
 
-            # Calculation of Fluctuation and Fluctuation Rate (등락과 등락율 계산)
-            if idx > 0:
-                row['fluctuation'] = int(row['close_price']) - int(result[idx-1]['close_price'])
-                row['fluctuation_rate'] = int(row['fluctuation']) / int(result[idx-1]['close_price'])
+        # Calculation fluctuation
+        initial_date = datetime.strftime(datetime.strptime(start_date, "%Y%m%d") - timedelta(1)  , "%Y%m%d")
+        initial_close_price = stock.get_market_ohlcv_by_date(fromdate=initial_date, todate=initial_date, ticker=short_isin_code, adjusted=False, name_display=False).to_dict(orient='records')[0]['종가']
+
+        for idx in range(0, len(output)):
+            if idx == 0:
+                output[idx]['fluctuation'] = output[idx]['close_price'] - initial_close_price
             else:
-                row['fluctuation'] = 0
-                row['fluctuation_rate'] = 0
+                output[idx]['fluctuation'] = output[idx]['close_price'] - output[idx-1]['close_price']
+    
+        return output
 
-            base_date = datetime.strptime(row['base_date'], '%Y%m%d')
-            if start_date <= base_date and base_date <= end_date:
-                result.append(row)
-                idx += 1
-
-        return result
-
-    except et.ParseError:
-        print("[ERROR] Parser Error")
+    except Exception as err_msg:
+        print(f"[ERROR] get_market_ohlcv_by_date Error: {err_msg}")
         return None
 
-def get_world_index_ohlcv_by_date(short_isin_code:str, startDt:str="20000101", endDt:str=dm.YESTERDAY):
+def get_world_index_ohlcv_by_date(ticker:str, startDt:str="20000101", endDt:str=dm.YESTERDAY):
     """
     세계 주요 주가 지수의 일별 OHCLV(Open, High, Close, Low, Volume) 데이터를 담은 DataFrame을 반환한다.
     
@@ -1004,6 +944,8 @@ def get_world_index_ohlcv_by_date(short_isin_code:str, startDt:str="20000101", e
     
     [Returns]
     pandas.core.frame.DataFrame : 세계 주요 주가 지수의 일별 OHCLV 데이터를 담은 DataFrame
+
+    None : 요청에 실패한 경우
     """
     
     startDt_datetime = datetime.strptime(startDt, '%Y%m%d')
@@ -1038,7 +980,8 @@ def get_world_index_ohlcv_by_date(short_isin_code:str, startDt:str="20000101", e
         return output
                 
     except Exception as err_msg:
-            print(f"[ERROR] get_world_index Error: {err_msg}")
+        print(f"[ERROR] get_world_index Error: {err_msg}")
+        return None
 
 def get_financials_by_date(short_isin_code:str, start_date:str='20000101', end_date:str=dm.YESTERDAY):
     """
@@ -1060,11 +1003,11 @@ def get_financials_by_date(short_isin_code:str, start_date:str='20000101', end_d
         div             (float)  : DIV (배당수익률)
         dps             (int)    : DPS (주식 배당금)
 
-    False : 요청에 실패한 경우
+    None : 요청에 실패한 경우
     """
 
     try:
-        response = stock.get_market_fundamental_by_date(fromdate=start_date, todate=end_date, ticker=short_isin_code, name_display=True,).to_dict(orient='index')
+        response = stock.get_market_fundamental_by_date(fromdate=start_date, todate=end_date, ticker=short_isin_code, name_display=True).to_dict(orient='index')
 
         output = list()
 
@@ -1086,4 +1029,4 @@ def get_financials_by_date(short_isin_code:str, start_date:str='20000101', end_d
 
     except Exception as err_msg:
         print(f"[ERROR] get_financials_by_date Error: {err_msg}")
-        return False
+        return None
