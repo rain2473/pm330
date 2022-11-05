@@ -11,10 +11,10 @@
 |:----------:|:--------------------------------------:|:---------------------:|
 | **[김덕룡](https://github.com/zjavbxj523)** | Front-end Developer<br/>Back-end Developer |  zjavbxj523@naver.com |
 | **[정제헌](https://github.com/jeheonee)** | Front-end Developer<br/>Back-end Developer | shout_world@naver.com |
-| **[조익준](https://github.com/harry7435)** | Front-end Developer<br/>Back-end Developer | harry960629@naver.com |
+| **[조익준](https://github.com/harry7435)** | AI Developer<br/>Back-end Developer | harry960629@naver.com |
 | **[홍윤기](https://github.com/rain2473)** | Front-end Developer<br/>Back-end Developer |   rain2473@naver.com  |
-| **[유상균](https://github.com/WMD-spec)** |     Back-end Developer<br/>Data Analyst    |  sglyu0414@gmail.com  |
-| **[이병헌](https://github.com/ByeongHeonLee)** |         Back-end Developer<br/>DBA         |   lww7438@gmail.com   |
+| **[유상균](https://github.com/WMD-spec)** |     Data Analyst    |  sglyu0414@gmail.com  |
+| **[이병헌](https://github.com/ByeongHeonLee)** |         DBA         |   lww7438@gmail.com   |
 <br />
 <br />
 <br />
