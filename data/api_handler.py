@@ -30,8 +30,10 @@ import requests
 import json     # JSON Parser
 
 from abc              import abstractmethod
+from pykrx            import stock
 from datetime         import datetime, timedelta
-from .                import data_manipulator as dm
+# from .                import data_manipulator as dm
+import data_manipulator as dm
 
 
 
@@ -926,11 +928,10 @@ def get_stock_market_index(serviceKey:str, pageNo=1, numOfRows=1, resultType="js
 
 def get_market_ohlcv_by_date(short_isin_code:str, start_date:str='20000101', end_date:str=dm.YESTERDAY):
     """
-    금융위원회_지수시세정보: 주가지수시세 검색 결과를 반환한다.
-    * 금융위원회_지수시세정보: 주가지수시세 (https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15094807)
+    PyKrx 일자별 OHLCV 조회: 해당 종목의 일별 OHLCV 데이터를 조회한다.
         
     [Parameters]
-    short_isin_code (str) : 공공데이터 포털에서 받은 인증키 (Mandatory) 
+    short_isin_code (str) : 국제 증권 식별 번호 (단축형, 6자리)
     start_date      (str) : 조회 시작 일자 (yyyymmdd) (default:20000101)
     end_date        (str) : 조회 종료 일자 (yyyymmdd) (default:YESTERDAT (전일))
 
@@ -992,7 +993,7 @@ def get_market_ohlcv_by_date(short_isin_code:str, start_date:str='20000101', end
         print("[ERROR] Parser Error")
         return None
 
-def get_world_index(ticker:str, startDt:str="20000101", endDt:str=dm.YESTERDAY):
+def get_world_index_ohlcv_by_date(short_isin_code:str, startDt:str="20000101", endDt:str=dm.YESTERDAY):
     """
     세계 주요 주가 지수의 일별 OHCLV(Open, High, Close, Low, Volume) 데이터를 담은 DataFrame을 반환한다.
     
@@ -1038,3 +1039,51 @@ def get_world_index(ticker:str, startDt:str="20000101", endDt:str=dm.YESTERDAY):
                 
     except Exception as err_msg:
             print(f"[ERROR] get_world_index Error: {err_msg}")
+
+def get_financials_by_date(short_isin_code:str, start_date:str='20000101', end_date:str=dm.YESTERDAY):
+    """
+    PyKrx 종목별 DIV/BPS/PER/EPS 조회: 해당 종목의 재무제표 데이터를 조회한다.
+        
+    [Parameters]
+    short_isin_code (str) : 국제 증권 식별 번호 (단축형, 6자리)
+    start_date      (str) : 조회 시작 일자 (yyyymmdd) (default:20000101)
+    end_date        (str) : 조회 종료 일자 (yyyymmdd) (default:YESTERDAT (전일))
+
+    [Returns]
+    list : 재무제표 데이터 (list of dict)
+        base_date       (string) : 기준일자
+        short_isin_code (string) : 국제 증권 식별 번호 (축약형, 6자리)
+        bps             (int)    : BPS (주당 순자산가치)
+        per             (float)  : PER (주가수익비율)
+        pbr             (float)  : PBR (주가순자산비율)
+        eps             (int)    : EPS (주당순이익)
+        div             (float)  : DIV (배당수익률)
+        dps             (int)    : DPS (주식 배당금)
+
+    False : 요청에 실패한 경우
+    """
+
+    try:
+        response = stock.get_market_fundamental_by_date(fromdate=start_date, todate=end_date, ticker=short_isin_code, name_display=True,).to_dict(orient='index')
+
+        output = list()
+
+        for base_date, financials in response.items():
+            row = dict()
+
+            # Column Renaming
+            row['base_date'] = base_date.strftime('%Y%m%d')
+            row['short_isin_code'] = short_isin_code
+            row['bps'] = financials.pop('BPS', None)
+            row['per'] = financials.pop('PER', None)
+            row['pbr'] = financials.pop('PBR', None)
+            row['eps'] = financials.pop('EPS', None)
+            row['div'] = financials.pop('DIV', None)
+            row['dps'] = financials.pop('DPS', None)
+            output.append(row)
+
+        return output
+
+    except Exception as err_msg:
+        print(f"[ERROR] get_financials_by_date Error: {err_msg}")
+        return False
