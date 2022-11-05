@@ -1,7 +1,7 @@
 
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-11-04(금)
+# Date    : 2022-11-05(토)
 
 
 
@@ -386,11 +386,11 @@ class PostgresCore():
         try:
             # Clear Table
             if market_category == 'KOSPI' or market_category == 'ALL':
-                self.delete_item(table='price_kospi')
+                self.delete_item(table='price_kospi', condition='ALL')
             if market_category == 'KOSDAQ' or market_category == 'ALL':
-                self.delete_item(table='price_kosdaq')
+                self.delete_item(table='price_kosdaq', condition='ALL')
             if market_category == 'KONEX' or market_category == 'ALL':
-                self.delete_item(table='price_konex')
+                self.delete_item(table='price_konex', condition='ALL')
 
             # Listing Stocks
             if market_category == 'KOSPI' or market_category == 'ALL':
@@ -468,16 +468,17 @@ class PostgresCore():
             print(f"[ERROR] build_prices Error: {err_msg}")
             return False
 
-    def build_financial_info(self):
+    def build_info_financial(self):
         """
-        데이터베이스의 financial_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 재무정보들을 저장한다.
+        데이터베이스의 info_financial 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 재무정보들을 저장한다.
         ※ 본 메서드는 DBA만 수행할 수 있다.
         
         [Parameters]
         -
         
         [Returns]
-        -
+        True  : info_financial 테이블 빌드에 성공한 경우
+        False : DBA 이외에 다른 사용자가 이 함수를 호출한 경우 혹은 에러가 발생한 경우
         """
 
         # DBA Only can run initial building function
@@ -486,74 +487,97 @@ class PostgresCore():
             return False
 
         try:
-            pass # This logic not implemented yet
+            # Clear Table
+            self.delete_item(table='info_financial', condition='ALL')
+
+            # Listing Stocks
+            str_stock_list = self.find_item(table='info_stock', columns=['isin_code', 'short_isin_code'])
+
+            # Parsing
+            list_stock = list()
+            for row in list_stock:
+                data = dict()
+                data['isin_code'] = row[0][1:-1].split(',')[0]
+                data['short_isin_code'] = row[0][1:-1].split(',')[1]
+                list_stock.append(data)
+
+            for stock in list_stock:
+
+                    list_financials = api.get_financials_by_date(short_isin_code=stock['short_isin_code'])
+
+                    for financials in list_financials:
+                        financials['isin_code'] = stock['isin_code']
+                        financials.pop('short_isin_code')
+
+                    self.insert_items(table='info_financial', columns=['base_date', 'isin_code', 'bps', 'per', 'pbr', 'eps', 'div', 'dps'], data=list_financials)
 
         except Exception as err_msg:
-            print(f"[ERROR] build_financial_info Error: {err_msg}")
+            print(f"[ERROR] build_info_financial Error: {err_msg}")
+            return False
 
-    # def build_news_info(self, market_category:str='ALL'):
-    #     """
-    #     데이터베이스의 news_info 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 주가정보들을 저장한다.
-    #     ※ 본 메서드는 DBA만 수행할 수 있다.
-        
-    #     [Parameters]
-    #     market_category (str) : 주가정보를 가져올 종목들의 상장 시장 (default='ALL') ('KOSPI':코스피 | 'KOSDAQ':코스닥 | 'KONEX':코넥스)
-        
-    #     [Returns]
-    #     False : 오류가 발생한 경우
-    #     """
-
-    #     # Only authorized developer can run initial building function
-    #     if(self.conn_user not in [config.ID_DBA, config.ID_IJ]):
-    #         print("Only authorized developer can run the build function")
-    #         return False
-
-    #     try:
-    #         # Clear Table
-    #         self.delete_item(table='news_info')
-
-    #         # Listing Stocks
-    #         if market_category == 'ALL':
-    #             rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'market_category'])
-    #         elif market_category in MARKET_CATEGORIES:
-    #             condition = f"market_category = CAST('{market_category}' AS {TYPE_basic_stock_info['market_category']})"
-    #             rows = self.find_item(table='basic_stock_info', columns=['isin_code', 'short_isin_code'], condition=condition)
-    #         else:
-    #             print(f"[ERROR] Invalid parameter: market_category: {market_category}")
-    #             return False
-
-    #         # Parsing
-    #         krx_listed_info = list()
-    #         for row in rows:
-    #             data = dict()
-    #             data['isin_code'] = row[0][1:-1].split(',')[0]
-    #             data['short_isin_code'] = row[0][1:-1].split(',')[1]
-    #             krx_listed_info.append(data)
-
-    #         for kr_stock in krx_listed_info:
-
-    #             raw_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
-
-    #             if len(raw_news) == 0:
-    #                 continue
-
-    #             list_news = list()
-    #             for article in raw_news:
-    #                 data = dict()
-    #                 data['isin_code'] = article[0]
-    #                 data['write_code'] = article[1]
-    #                 data['headline'] = article[2]
-    #                 data['sentiment'] = float(article[3])
-    #                 list_news.append(data)
-
-    #             self.insert_items(table='news_info', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=list_news)
-        
-    #     except Exception as err_msg:
-    #         print(f"[ERROR] build_news_info Error: {err_msg}")
-
-    def build_world_index_info(self):
+    def build_info_news(self, market_category:str='ALL'):
         """
-        데이터베이스의 world_index_info 테이블에 세계 주요 주가 지수에 대한 정보들을 저장한다.
+        데이터베이스의 info_news 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 주가정보들을 저장한다.
+        ※ 본 메서드는 DBA만 수행할 수 있다.
+        
+        [Parameters]
+        market_category (str) : 주가정보를 가져올 종목들의 상장 시장 (default='ALL') ('KOSPI':코스피 | 'KOSDAQ':코스닥 | 'KONEX':코넥스)
+        
+        [Returns]
+        False : 오류가 발생한 경우
+        """
+
+        # Only authorized developer can run initial building function
+        if(self.conn_user not in [config.ID_DBA, config.ID_IJ]):
+            print("Only authorized developer can run the build function")
+            return False
+
+        try:
+            # Clear Table
+            self.delete_item(table='info_news')
+
+            # Listing Stocks
+            if market_category == 'ALL':
+                rows = self.find_item(table='info_stock', columns=['isin_code', 'market_category'])
+            elif market_category in schema.MARKET_CATEGORIES:
+                condition = f"market_category = CAST('{market_category}' AS {schema.TYPE_basic_stock_info['market_category']})"
+                rows = self.find_item(table='info_stock', columns=['isin_code', 'short_isin_code'], condition=condition)
+            else:
+                print(f"[ERROR] Invalid parameter: market_category: {market_category}")
+                return False
+
+            # Parsing
+            krx_listed_info = list()
+            for row in rows:
+                data = dict()
+                data['isin_code'] = row[0][1:-1].split(',')[0]
+                data['short_isin_code'] = row[0][1:-1].split(',')[1]
+                krx_listed_info.append(data)
+
+            for kr_stock in krx_listed_info:
+
+                raw_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
+
+                if len(raw_news) == 0:
+                    continue
+
+                list_news = list()
+                for article in raw_news:
+                    data = dict()
+                    data['isin_code'] = article[0]
+                    data['write_code'] = article[1]
+                    data['headline'] = article[2]
+                    data['sentiment'] = float(article[3])
+                    list_news.append(data)
+
+                self.insert_items(table='info_news', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=list_news)
+        
+        except Exception as err_msg:
+            print(f"[ERROR] build_info_news Error: {err_msg}")
+
+    def build_info_world_index(self):
+        """
+        데이터베이스의 info_world_index 테이블에 세계 주요 주가 지수에 대한 정보들을 저장한다.
         ※ 본 메서드는 DBA만 수행할 수 있다.
         
         [Parameters]
@@ -613,15 +637,15 @@ class PostgresCore():
 
         try:
             # Clear Table
-            self.delete_item(table='world_index_info')
-            self.insert_items(table='world_index_info', columns=['ticker', 'nation', 'index_name'], data=WORLD_INDEX_TICKERS)
+            self.delete_item(table='info_world_index')
+            self.insert_items(table='info_world_index', columns=['ticker', 'nation', 'index_name'], data=WORLD_INDEX_TICKERS)
 
         except Exception as err_msg:
-            print(f"[ERROR] build_world_index_info Error: {err_msg}")
+            print(f"[ERROR] build_info_world_index Error: {err_msg}")
 
-    def build_world_index_price(self):
+    def build_price_world_index(self):
         """
-        데이터베이스의 world_index_price 테이블에 세계 주요 주가 지수에 대한 가격 정보들을 저장한다.
+        데이터베이스의 price_world_index 테이블에 세계 주요 주가 지수에 대한 가격 정보들을 저장한다.
         ※ 본 메서드는 DBA만 수행할 수 있다.
         
         [Parameters]
@@ -638,10 +662,10 @@ class PostgresCore():
 
         try:
             # Clear Table
-            self.delete_item(table='world_index_price')
+            self.delete_item(table='price_world_index')
 
             # Get information of world indices
-            raw_data = self.get_all_data(table='world_index_info')
+            raw_data = self.get_all_data(table='info_world_index')
 
             # Parsing
             world_indices = list()
@@ -654,9 +678,9 @@ class PostgresCore():
 
             # Collect data of prices of indices
             for world_index in world_indices:
-                prices = api.get_world_index(ticker=world_index['ticker'], startDt='20220101', endDt=dm.YESTERDAY)
+                prices = api.get_world_index_ohlcv_by_date(ticker=world_index['ticker'], startDt='20220101', endDt=dm.YESTERDAY)
 
-                self.insert_items(table='world_index_price', columns=['ticker', 'base_date', 'market_price', 'close_price', 'adj_close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=prices)
+                self.insert_items(table='price_world_index', columns=['ticker', 'base_date', 'market_price', 'close_price', 'adj_close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=prices)
 
         except Exception as err_msg:
-            print(f"[ERROR] build_world_index_info Error: {err_msg}")
+            print(f"[ERROR] build_price_world_index Error: {err_msg}")
