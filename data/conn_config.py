@@ -1,7 +1,7 @@
 
 # Author      : 이병헌
 # Contact     : lww7438@gmail.com
-# Date        : 2022-10-27(목)
+# Date        : 2022-11-29(화)
 
 
 
@@ -12,6 +12,8 @@ import os
 
 # * * *   API Keys   * * *
 API_KEY_OPEN_DATA_PORTAL = os.getenv('API_KEY_OPEN_DATA_PORTAL')
+
+
 
 # * * *   DB Connection Information   * * *
 POSTGRES_HOST     = 'pm330.c68tjqdjajqc.us-east-1.rds.amazonaws.com'

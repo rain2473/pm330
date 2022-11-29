@@ -1,15 +1,14 @@
-
 # Author  : 유상균
 # Contact : sglyu0414@gmail.com
 # Date    : 2022-10-24(목)
 
-# !pip install pyportfolioopt
-# !pip install yfinance
+
 
 # Required Modules
 import pandas   as pd
 import numpy    as np
 
+# Install command: pip install pyportfolioopt
 from pypfopt.expected_returns    import ema_historical_return
 from pypfopt.risk_models         import exp_cov
 from pypfopt.efficient_frontier  import EfficientFrontier
@@ -21,21 +20,28 @@ from sklearn.preprocessing       import minmax_scale
 
 from data import postgres_handler as pg
 from data import config
+
+
+
 pgdb = pg.PostgresHandler(user=config.ID_SG, password=config.PW_SG)
 
 
-# 회원 포트폴리오 평가
+
+# Functions
 def evaluate_my_pf(weights, stocks_close):
     """
     회원의 포트폴리오 구성종목별 비중과 각 종목의 종가를 입력받아 
     기존 포트폴리오의 연간 수익률과 샤프지수 기반 포트폴리오의 점수를 반환한다.
+
     [Parameters]
-    weights            (list) : 각 종목별 비중
-    stocks_close  (DataFrame) : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
+    weights      (list)      : 각 종목별 비중
+    stocks_close (DataFrame) : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
+
     [Returns]
     float64 : 포트폴리오의 수익률
     int     : 포트폴리오의 점수
     """
+
     stocks_return = ema_historical_return(stocks_close, compounding=True, log_returns=True) # 최근 종가에 더 많은 시간 가중치를 부여해 계산한 수익률
     pf_cov = exp_cov(stocks_close, log_returns=True)                                        # 상관계수
     pf_var = portfolio_variance(weights, pf_cov)                                            # 포트폴리오의 변동률
@@ -53,17 +59,20 @@ def evaluate_my_pf(weights, stocks_close):
     return pf_return, score
 
 
-# 포트폴리오 최적화
+
 def get_best_pf(stocks_close, seed_money):
     """
     입력받은 주식 종목들간 비중 최적화를 통해 가장 높은 수익률을 가진 포트폴리오와
     가장 위험이 적은 포트폴리오의 비중을 딕셔너리 형식으로 반환한다.
+
     [Parameters]
-    stocks_close  (DataFrame) : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
+    stocks_close (DataFrame) : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
+
     [Returns]
     dict : 포트폴리오의 수익률
     int  : 포트폴리오의 점수
     """
+
     stocks_return = ema_historical_return(stocks_close, compounding=True, log_returns=True) # 최근 종가에 더 많은 시간 가중치를 부여해 계산한 수익률
     pf_cov = exp_cov(stocks_close, log_returns=True)                                        # 상관계수
     stocks_return_pct = stocks_close.pct_change().dropna()                                  # 종목들의 퍼센트 수익률
@@ -107,14 +116,17 @@ def get_best_pf(stocks_close, seed_money):
 def recommend_stocks(allocation, stocks_close, stocks_close_all):
     """
     최적화된 포트폴리오 비중과 종목들의 종가를 받아 개별 종목간 상관계수를 기반으로 5개의 종목 추천
+
     [Parameters]
-    allocation            (dict) : 종목이름 : 주식수 로 이루어진 딕셔너리
+    allocation       (dict)      : <종목이름 : 주식수> 로 이루어진 딕셔너리
     stocks_close     (DataFrame) : 각 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
     stocks_close_all (DataFrame) : 모든 종목이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
+
     [Returns]
     list      : 추천하는 다섯개의 종목명(str)
     DataFrame : 다섯개 종목에 대한 종가
     """
+
     stocks = list(allocation.keys())                                               # 최적 포트폴리오에 포함될 종목들의 이름
     weights = list(allocation.values())                                            # 최적 포트폴리오에 포함되어 매수한 종목들의 주식 수
     stocks_close['pf_total_price'] = 0                                             # 최적 포트폴리오의 가격 변동을 할당하기 위한 칼럼 0으로 초기화 및 추가
@@ -136,11 +148,14 @@ def get_drift(stocks_close):
     단일 종목의 종가로 이루어진 시계열 데이터를 입력받아 
     해당 종목의 주가 모멘텀을 반환한다.
     양수이면 상승 모멘텀, 음수이면 하락 모멘텀을 나타낸다.
+
     [Parameters]
     stocks_close  (DataFrame) : 단일 종목의 이름을 칼럼명으로, 날짜를 인덱스로 갖는 종목별 종가
+
     [Returns]
-    dict : {'종목':'모멘텀'} 형식의 dict
+    dict : <'종목':'모멘텀'> 형식의 dict
     """
+
     log_returns = np.log(1+stocks_close.pct_change()) # 단일 종목의 로그수익률 계산
     U = log_returns.mean()                            # 로그 수익률의 평균
     var = log_returns.var()                           # 로그 수익률의 분산
@@ -157,15 +172,17 @@ def get_drift(stocks_close):
     
     return momentum
 
-
 def get_member_stock(m_id):
     """
     회원의 아이디를 입력받아 해당 회원의 포트폴리오 편입 종목을 isin으로 반환한다.
+
     [Parameters]
-    m_id   (str) : 회원의 아이디
+    m_id (str) : 회원의 아이디
+
     [Returns]
     list : 회원이 보유한 종목 isin code로 이루어진 리스트
     """
+    
     member = pgdb.get_portfolio_by_member_id(member_id = m_id)
     temp_list = []
     for i in range(len(member)):

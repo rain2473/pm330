@@ -1,7 +1,6 @@
-
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-11-05(토)
+# Date    : 2022-11-29(화)
 
 
 
@@ -12,13 +11,14 @@ from . import schema
 from . import conn_config      as config
 from . import api_handler      as api
 from . import data_manipulator as dm
+from . import set_news         as news
 
 
 
 # Class Declaration
 class PostgresCore():
 
-    # * * *    Low-Level Methods (SQL Handlers)    * * *
+    # * * *    SQL Handlers    * * *
     def __init__(self, user:str, password:str, host=config.POSTGRES_HOST, port=config.POSTGRES_PORT, db_name=config.PORTGRES_DB_NAME):
 
         self._client = psycopg2.connect(
@@ -77,7 +77,7 @@ class PostgresCore():
         for column in columns:
             
             if data[column] in schema.NULL_TYPES:
-                str_values += "None" + ", "
+                str_values += "null" + ", "
             elif schema.get_type_by_column_name(table, column) in schema.STR_TYPES:
                 str_values += "'" + str(data[column]) + "', "
             else:
@@ -277,11 +277,11 @@ class PostgresCore():
 
         # Processing for invalid arguments
         if (table not in schema.LIST_TABLE_NAME) or (table is None):
-            print(f"[ERROR] Invalid Table Name: {table} does not exist")
+            print(f"[ERROR] delete_item error: Invalid Table Name: {table} does not exist")
             return False
         
         if condition is None:
-            print(f"[ERROR] Invalid condition: {condition} does not allowed")
+            print(f"[ERROR] delete_item error: Invalid condition: {condition} does not allowed")
             return False
 
         if condition == 'ALL':
@@ -290,6 +290,7 @@ class PostgresCore():
             sql = f" DELETE FROM {table} WHERE {condition} ;"
 
         try :
+            print("Executed SQL: ", sql)
             self.cursor.execute(sql)
             self._client.commit()
             return True
@@ -298,6 +299,7 @@ class PostgresCore():
             print(f"[ERROR] delete_item Error: {err_msg}")
             return False
 
+    # * * *    Build Methods (Table Initializers)    * * *
     def build_info_stock(self):
         """
         데이터베이스의 info_stock 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 기본정보들을 저장한다.
@@ -331,28 +333,35 @@ class PostgresCore():
                     basic_stock_info.append(krx_listed_info[i])
 
             for krx_stock in basic_stock_info:
-                item_basi_info = api.get_item_basi_info(serviceKey=config.API_KEY_OPEN_DATA_PORTAL, crno=krx_stock['crno'])
 
-                if item_basi_info is not None:
-                    item_basi_info = dm.filter_params(data_list=item_basi_info, params=['isinCd', 'stckParPrc', 'issuStckCnt', 'lstgDt'])
-                    
-                    for key, value in item_basi_info[0].items():
-                        krx_stock[key] = value       
+                try:
+                    item_basi_info = api.get_item_basi_info(serviceKey=config.API_KEY_OPEN_DATA_PORTAL, crno=krx_stock['crno'])
+                
+                    if item_basi_info is not None:
+                        item_basi_info = dm.filter_params(data_list=item_basi_info, params=['isinCd', 'stckParPrc', 'issuStckCnt', 'lstgDt'])
+                        
+                        for key, value in item_basi_info[0].items():
+                            krx_stock[key] = value       
 
-                # Column Renaming
-                krx_stock['isin_code'] = krx_stock.pop('isinCd', None)
-                krx_stock['market_category'] = krx_stock.pop('mrktCtg', None)
-                krx_stock['item_name'] = krx_stock.pop('itmsNm', None)
-                krx_stock['corp_number'] = krx_stock.pop('crno', None)
-                krx_stock['corp_name'] = krx_stock.pop('corpNm', None)
-                krx_stock['short_isin_code'] = krx_stock.pop('shotnIsin', None)
-                krx_stock['face_value'] = krx_stock.pop('stckParPrc', None)
-                krx_stock['issue_cnt'] = krx_stock.pop('issuStckCnt', None)
-                krx_stock['listing_date'] = krx_stock.pop('lstgDt', None)
-                krx_stock['industry'] = None # 산업군(섹터)에 대한 데이터 소스를 찾지 못함
+                    # Column Renaming
+                    krx_stock['isin_code'] = krx_stock.pop('isinCd', None)
+                    krx_stock['market_category'] = krx_stock.pop('mrktCtg', None)
+                    krx_stock['item_name'] = krx_stock.pop('itmsNm', None)
+                    krx_stock['corp_number'] = krx_stock.pop('crno', None)
+                    krx_stock['corp_name'] = krx_stock.pop('corpNm', None)
+                    krx_stock['short_isin_code'] = krx_stock.pop('shotnIsin', None)
+                    krx_stock['face_value'] = krx_stock.pop('stckParPrc', None)
+                    krx_stock['issue_cnt'] = krx_stock.pop('issuStckCnt', None)
+                    krx_stock['listing_date'] = krx_stock.pop('lstgDt', None)
+                    krx_stock['industry'] = None # 산업군(섹터)에 대한 데이터 소스를 찾지 못함
 
-            # Query Execution
-            self.insert_items(table='info_stock', columns=['isin_code', 'short_isin_code', 'market_category', 'item_name', 'corp_name', 'corp_number', 'listing_date', 'issue_cnt', 'industry', 'face_value'], data=basic_stock_info)
+                    # Query Execution
+                    self.insert_item(table='info_stock', columns=['isin_code', 'short_isin_code', 'market_category', 'item_name', 'corp_name', 'corp_number', 'listing_date', 'issue_cnt', 'industry', 'face_value'], data=krx_stock)
+                
+                except Exception.ConnectTimeout as err_msg:
+                    print(f"[ERROR] ConnectTimeout occured: {err_msg}")
+                    continue
+
             return True
 
         except Exception as err_msg:
@@ -394,13 +403,13 @@ class PostgresCore():
 
             # Listing Stocks
             if market_category == 'KOSPI' or market_category == 'ALL':
-                condition = f"market_category = CAST('{market_category}' AS {schema.TYPE_info_stock['market_category']})"
-                str_kospi_list = self.find_item(table='info_stock', columns=['isin_code', 'market_category'], condition=condition)
+                condition = f"market_category = CAST('KOSPI' AS {schema.TYPE_info_stock['market_category']})"
+                str_kospi_list = self.find_item(table='info_stock', columns=['isin_code', 'short_isin_code'], condition=condition)
             if market_category == 'KOSDAQ' or market_category == 'ALL':
-                condition = f"market_category = CAST('{market_category}' AS {schema.TYPE_info_stock['market_category']})"
+                condition = f"market_category = CAST('KOSDAQ' AS {schema.TYPE_info_stock['market_category']})"
                 str_kosdaq_list = self.find_item(table='info_stock', columns=['isin_code', 'short_isin_code'], condition=condition)
             if market_category == 'KONEX' or market_category == 'ALL':
-                condition = f"market_category = CAST('{market_category}' AS {schema.TYPE_info_stock['market_category']})"
+                condition = f"market_category = CAST('KONEX' AS {schema.TYPE_info_stock['market_category']})"
                 str_konex_list = self.find_item(table='info_stock', columns=['isin_code', 'short_isin_code'], condition=condition)
 
             # Parsing
@@ -432,35 +441,41 @@ class PostgresCore():
             if market_category == 'KOSPI' or market_category == 'ALL':
                 for kospi_stock in list_kospi:
 
-                    list_ohlcv = api.get_market_ohlcv_by_date(short_isin_code=kospi_stock['short_isin_code'])
+                    ohlcv_list = api.get_market_ohlcv_by_date(short_isin_code=kospi_stock['short_isin_code'])
+                    if ohlcv_list is None:
+                        continue
 
-                    for ohlcv in list_ohlcv:
+                    for ohlcv in ohlcv_list:
                         ohlcv['isin_code'] = kospi_stock['isin_code']
                         ohlcv.pop('short_isin_code')
 
-                    self.insert_items(table='price_kospi', columns=['base_date', 'isin_code', 'market_price', 'close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=list_ohlcv)
+                    self.insert_items(table='price_kospi', columns=['base_date', 'isin_code', 'market_price', 'close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=ohlcv_list)
 
             if market_category == 'KOSDAQ' or market_category == 'ALL':
                 for kosdaq_stock in list_kosdaq:
 
-                    list_ohlcv = api.get_market_ohlcv_by_date(short_isin_code=kosdaq_stock['short_isin_code'])
+                    ohlcv_list = api.get_market_ohlcv_by_date(short_isin_code=kosdaq_stock['short_isin_code'])
+                    if ohlcv_list is None:
+                        continue
 
-                    for ohlcv in list_ohlcv:
+                    for ohlcv in ohlcv_list:
                         ohlcv['isin_code'] = kosdaq_stock['isin_code']
                         ohlcv.pop('short_isin_code')
 
-                    self.insert_items(table='price_kosdaq', columns=['base_date', 'isin_code', 'market_price', 'close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=list_ohlcv)
+                    self.insert_items(table='price_kosdaq', columns=['base_date', 'isin_code', 'market_price', 'close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=ohlcv_list)
 
             if market_category == 'KONEX' or market_category == 'ALL':
                 for konex_stock in list_konex:
 
-                    list_ohlcv = api.get_market_ohlcv_by_date(short_isin_code=konex_stock['short_isin_code'])
+                    ohlcv_list = api.get_market_ohlcv_by_date(short_isin_code=konex_stock['short_isin_code'])
+                    if ohlcv_list is None:
+                        continue
 
-                    for ohlcv in list_ohlcv:
+                    for ohlcv in ohlcv_list:
                         ohlcv['isin_code'] = konex_stock['isin_code']
                         ohlcv.pop('short_isin_code')
 
-                    self.insert_items(table='price_konex', columns=['base_date', 'isin_code', 'market_price', 'close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=list_ohlcv)
+                    self.insert_items(table='price_konex', columns=['base_date', 'isin_code', 'market_price', 'close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=ohlcv_list)
 
             return True
         
@@ -495,7 +510,7 @@ class PostgresCore():
 
             # Parsing
             list_stock = list()
-            for row in list_stock:
+            for row in str_stock_list:
                 data = dict()
                 data['isin_code'] = row[0][1:-1].split(',')[0]
                 data['short_isin_code'] = row[0][1:-1].split(',')[1]
@@ -503,13 +518,17 @@ class PostgresCore():
 
             for stock in list_stock:
 
-                    list_financials = api.get_financials_by_date(short_isin_code=stock['short_isin_code'])
+                    try:
+                        list_financials = api.get_financials_by_date(short_isin_code=stock['short_isin_code'])
 
-                    for financials in list_financials:
-                        financials['isin_code'] = stock['isin_code']
-                        financials.pop('short_isin_code')
+                        for financials in list_financials:
+                            financials['isin_code'] = stock['isin_code']
+                            financials.pop('short_isin_code')
 
-                    self.insert_items(table='info_financial', columns=['base_date', 'isin_code', 'bps', 'per', 'pbr', 'eps', 'div', 'dps'], data=list_financials)
+                        self.insert_items(table='info_financial', columns=['base_date', 'isin_code', 'bps', 'per', 'pbr', 'eps', 'div', 'dps'], data=list_financials)
+                    except:
+                        print(f"[ERROR] build_info_financial Error: {err_msg}")
+                        continue
 
         except Exception as err_msg:
             print(f"[ERROR] build_info_financial Error: {err_msg}")
@@ -518,7 +537,7 @@ class PostgresCore():
     def build_info_news(self, market_category:str='ALL'):
         """
         데이터베이스의 info_news 테이블에 KOSPI, KOSDAQ, KONEX에 상장된 전 종목에 대한 주가정보들을 저장한다.
-        ※ 본 메서드는 DBA만 수행할 수 있다.
+        ※ 본 메서드는 DBA와 인가된 팀원만 수행할 수 있다.
         
         [Parameters]
         market_category (str) : 주가정보를 가져올 종목들의 상장 시장 (default='ALL') ('KOSPI':코스피 | 'KOSDAQ':코스닥 | 'KONEX':코넥스)
@@ -534,11 +553,11 @@ class PostgresCore():
 
         try:
             # Clear Table
-            self.delete_item(table='info_news')
+            self.delete_item(table='info_news', condition='ALL')
 
             # Listing Stocks
             if market_category == 'ALL':
-                rows = self.find_item(table='info_stock', columns=['isin_code', 'market_category'])
+                rows = self.find_item(table='info_stock', columns=['isin_code', 'short_isin_code'])
             elif market_category in schema.MARKET_CATEGORIES:
                 condition = f"market_category = CAST('{market_category}' AS {schema.TYPE_basic_stock_info['market_category']})"
                 rows = self.find_item(table='info_stock', columns=['isin_code', 'short_isin_code'], condition=condition)
@@ -554,24 +573,29 @@ class PostgresCore():
                 data['short_isin_code'] = row[0][1:-1].split(',')[1]
                 krx_listed_info.append(data)
 
+            
             for kr_stock in krx_listed_info:
+                try:
+                    raw_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
 
-                raw_news = news.get_data(isin_code=kr_stock['isin_code'], short_isin_code=kr_stock['short_isin_code'])
+                    if len(raw_news) == 0:
+                        continue
 
-                if len(raw_news) == 0:
+                    list_news = list()
+                    for article in raw_news:
+                        data = dict()
+                        data['isin_code'] = article[0]
+                        data['write_date'] = article[1]
+                        data['headline'] = article[2]
+                        data['sentiment'] = float(article[3])
+                        list_news.append(data)
+
+                    self.insert_items(table='info_news', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=list_news)
+
+                except Exception as err_msg:
+                    print(f"[ERROR] Ignore this news: {raw_news}")
                     continue
 
-                list_news = list()
-                for article in raw_news:
-                    data = dict()
-                    data['isin_code'] = article[0]
-                    data['write_code'] = article[1]
-                    data['headline'] = article[2]
-                    data['sentiment'] = float(article[3])
-                    list_news.append(data)
-
-                self.insert_items(table='info_news', columns=['isin_code', 'write_date', 'headline', 'sentiment'], data=list_news)
-        
         except Exception as err_msg:
             print(f"[ERROR] build_info_news Error: {err_msg}")
 
@@ -590,44 +614,44 @@ class PostgresCore():
         WORLD_INDEX_TICKERS = [
 
             # Primary Indices below:
-            {'ticker':'^GSPC',     'nation':'US',          'index_name':'S&P 500',                      'latitude':39.1, 'longtitude':-118.3},
-            {'ticker':'^DJI',      'nation':'US',          'index_name':'Dow Jones Industrial Average', 'latitude':38.7, 'longtitude':-94.2},
-            {'ticker':'^IXIC',     'nation':'US',          'index_name':'NASDAQ Composite',             'latitude':42.5, 'longtitude':-74.1},
-            {'ticker':'^VIX',      'nation':'US',          'index_name':'Vix',                          'latitude':44.1, 'longtitude':-84.2},
-            {'ticker':'^STOXX50E', 'nation':'Europe',      'index_name':'ESTX 50 PR.EUR',               'latitude':41.9, 'longtitude':13.5},
-            {'ticker':'\^FTSE',    'nation':'UK',          'index_name':'FTSE 100',                     'latitude':53.5, 'longtitude':-2.1},
-            {'ticker':'^GDAXI',    'nation':'Germany',     'index_name':'DAX PERFORMANCE-INDEX',        'latitude':52.8, 'longtitude':10.45},
-            {'ticker':'^FCHI',     'nation':'France',      'index_name':'CAC 40',                       'latitude':48.2, 'longtitude':4.3},
-            {'ticker':'^N100',     'nation':'France',      'index_name':'Euronext 100 Index',           'latitude':46.4, 'longtitude':2.1},
-            {'ticker':'000001.SS', 'nation':'China',       'index_name':'SSE Composite Index',          'latitude':29.1, 'longtitude':119.2},
-            {'ticker':'399001.SZ', 'nation':'China',       'index_name':'Shenzhen Index',               'latitude':37.1, 'longtitude':116.5},
-            {'ticker':'^N225',     'nation':'Japan',       'index_name':'Nikkei 225',                   'latitude':36.4, 'longtitude':138.24},
-            {'ticker':'^KS11',     'nation':'Korea',       'index_name':'KOSPI Composite Index',        'latitude':37.5, 'longtitude':128.00},
-            {'ticker':'^HSI',      'nation':'Taiwan',      'index_name':'HANG SENG INDEX',              'latitude':22.1, 'longtitude':120.1},
-            {'ticker':'^TWII',     'nation':'Taiwan',      'index_name':'TSEC weighted index',          'latitude':24.4, 'longtitude':121.3},
+            {'ticker':'^GSPC',     'nation':'US',          'index_name':'S&P 500',                      'lat':39.1,  'lon':-118.3},
+            {'ticker':'^DJI',      'nation':'US',          'index_name':'Dow Jones Industrial Average', 'lat':38.7,  'lon':-94.2},
+            {'ticker':'^IXIC',     'nation':'US',          'index_name':'NASDAQ Composite',             'lat':42.5,  'lon':-74.1},
+            {'ticker':'^VIX',      'nation':'US',          'index_name':'Vix',                          'lat':44.1,  'lon':-84.2},
+            {'ticker':'^STOXX50E', 'nation':'Europe',      'index_name':'ESTX 50 PR.EUR',               'lat':41.9,  'lon':13.5},
+            {'ticker':'\^FTSE',    'nation':'UK',          'index_name':'FTSE 100',                     'lat':53.5,  'lon':-2.1},
+            {'ticker':'^GDAXI',    'nation':'Germany',     'index_name':'DAX PERFORMANCE-INDEX',        'lat':52.8,  'lon':10.45},
+            {'ticker':'^FCHI',     'nation':'France',      'index_name':'CAC 40',                       'lat':48.2,  'lon':4.3},
+            {'ticker':'^N100',     'nation':'France',      'index_name':'Euronext 100 Index',           'lat':46.4,  'lon':2.1},
+            {'ticker':'000001.SS', 'nation':'China',       'index_name':'SSE Composite Index',          'lat':29.1,  'lon':119.2},
+            {'ticker':'399001.SZ', 'nation':'China',       'index_name':'Shenzhen Index',               'lat':37.1,  'lon':116.5},
+            {'ticker':'^N225',     'nation':'Japan',       'index_name':'Nikkei 225',                   'lat':36.4,  'lon':138.24},
+            {'ticker':'^KS11',     'nation':'Korea',       'index_name':'KOSPI Composite Index',        'lat':37.5,  'lon':128.00},
+            {'ticker':'^HSI',      'nation':'Taiwan',      'index_name':'HANG SENG INDEX',              'lat':23.1,  'lon':121.1},
+            {'ticker':'^TWII',     'nation':'Taiwan',      'index_name':'TSEC weighted index',          'lat':24.4,  'lon':121.3},
 
             # Secondary Indices below:
-            {'ticker':'^BUK100P',  'nation':'UK',          'index_name':'Cboe UK 100',                  'latitude':None, 'longtitude':None},
-            {'ticker':'^NYA',      'nation':'US',          'index_name':'NYSE COMPOSITE (DJ)',          'latitude':None, 'longtitude':None},
-            {'ticker':'^XAX',      'nation':'US',          'index_name':'NYSE AMEX COMPOSITE INDEX',    'latitude':None, 'longtitude':None},
-            {'ticker':'^RUT',      'nation':'US',          'index_name':'Russell 2000',                 'latitude':None, 'longtitude':None},
-            {'ticker':'^BFX',      'nation':'Belgium',     'index_name':'BEL 20',                       'latitude':None, 'longtitude':None},
-            {'ticker':'IMOEX.ME',  'nation':'Russia',      'index_name':'MOEX Russia Index',            'latitude':None, 'longtitude':None},
-            {'ticker':'\^STI',     'nation':'Singapore',   'index_name':'STI Index',                    'latitude':None, 'longtitude':None},
-            {'ticker':'^AXJO',     'nation':'Australia',   'index_name':'S&P/ASX 200',                  'latitude':None, 'longtitude':None},
-            {'ticker':'^AORD',     'nation':'Australia',   'index_name':'ALL ORDINARIES',               'latitude':None, 'longtitude':None},
-            {'ticker':'^BSESN',    'nation':'India',       'index_name':'S&P BSE SENSEX',               'latitude':None, 'longtitude':None},
-            {'ticker':'^JKSE',     'nation':'Indonesia',   'index_name':'Jakarta Composite Index',      'latitude':None, 'longtitude':None},
-            {'ticker':'\^KLSE',    'nation':'Malaysia',    'index_name':'FTSE Bursa Malaysia KLCI',     'latitude':None, 'longtitude':None},
-            {'ticker':'^NZ50',     'nation':'New Zealand', 'index_name':'S&P/NZX 50 INDEX GROSS',       'latitude':None, 'longtitude':None},
-            {'ticker':'^GSPTSE',   'nation':'Canada',      'index_name':'S&P/TSX Composite index',      'latitude':None, 'longtitude':None},
-            {'ticker':'^BVSP',     'nation':'Brazil',      'index_name':'IBOVESPA',                     'latitude':None, 'longtitude':None},
-            {'ticker':'^MXX',      'nation':'Mexico',      'index_name':'IPC MEXICO',                   'latitude':None, 'longtitude':None},
-            {'ticker':'^IPSA',     'nation':'Chile',       'index_name':'S&P/CLX IPSA',                 'latitude':None, 'longtitude':None},
-            {'ticker':'^MERV',     'nation':'Argentina',   'index_name':'MERVAL',                       'latitude':None, 'longtitude':None},
-            {'ticker':'^TA125.TA', 'nation':'Israel',      'index_name':'TA-125',                       'latitude':None, 'longtitude':None},
-            {'ticker':'^CASE30',   'nation':'Egypt',       'index_name':'EGX 30 Price Return Index',    'latitude':None, 'longtitude':None},
-            {'ticker':'^JN0U.JO',  'nation':'Republic of South Africa', 'index_name':'Top 40 USD Net TRI Index', 'latitude':None, 'longtitude':None},
+            {'ticker':'^BUK100P',  'nation':'UK',          'index_name':'Cboe UK 100',                  'lat':51.5,  'lon':-1.1},
+            {'ticker':'^NYA',      'nation':'US',          'index_name':'NYSE COMPOSITE (DJ)',          'lat':34.5,  'lon':-84.1},
+            {'ticker':'^XAX',      'nation':'US',          'index_name':'NYSE AMEX COMPOSITE INDEX',    'lat':43.2,  'lon':-107.1},
+            {'ticker':'^RUT',      'nation':'US',          'index_name':'Russell 2000',                 'lat':45.8,  'lon':-121.3},
+            {'ticker':'^BFX',      'nation':'Belgium',     'index_name':'BEL 20',                       'lat':50.5,  'lon':4.33},
+            {'ticker':'IMOEX.ME',  'nation':'Russia',      'index_name':'MOEX Russia Index',            'lat':55.5,  'lon':37.5},
+            {'ticker':'\^STI',     'nation':'Singapore',   'index_name':'STI Index',                    'lat':1.33,  'lon':103.8},
+            {'ticker':'^AXJO',     'nation':'Australia',   'index_name':'S&P/ASX 200',                  'lat':-30.0, 'lon':125.0},
+            {'ticker':'^AORD',     'nation':'Australia',   'index_name':'ALL ORDINARIES',               'lat':-33.0, 'lon':138.0},
+            {'ticker':'^BSESN',    'nation':'India',       'index_name':'S&P BSE SENSEX',               'lat':20.0,  'lon':77.0},
+            {'ticker':'^JKSE',     'nation':'Indonesia',   'index_name':'Jakarta Composite Index',      'lat':-5.0,  'lon':120.0},
+            {'ticker':'\^KLSE',    'nation':'Malaysia',    'index_name':'FTSE Bursa Malaysia KLCI',     'lat':2.5,   'lon':112.5},
+            {'ticker':'^NZ50',     'nation':'New Zealand', 'index_name':'S&P/NZX 50 INDEX GROSS',       'lat':-41.0, 'lon':174.0},
+            {'ticker':'^GSPTSE',   'nation':'Canada',      'index_name':'S&P/TSX Composite index',      'lat':60.0,  'lon':-115.0},
+            {'ticker':'^BVSP',     'nation':'Brazil',      'index_name':'IBOVESPA',                     'lat':-10.0, 'lon':-55.0},
+            {'ticker':'^MXX',      'nation':'Mexico',      'index_name':'IPC MEXICO',                   'lat':19.3,  'lon':-99.1},
+            {'ticker':'^IPSA',     'nation':'Chile',       'index_name':'S&P/CLX IPSA',                 'lat':-30.0, 'lon':-71.0}, # Unavailable
+            {'ticker':'^MERV',     'nation':'Argentina',   'index_name':'MERVAL',                       'lat':-34.0, 'lon':-64.0},
+            {'ticker':'^TA125.TA', 'nation':'Israel',      'index_name':'TA-125',                       'lat':31.5,  'lon':34.75},
+            {'ticker':'^CASE30',   'nation':'Egypt',       'index_name':'EGX 30 Price Return Index',    'lat':27.0,  'lon':30.0},
+            {'ticker':'^JN0U.JO',  'nation':'Republic of South Africa', 'index_name':'Top 40 USD Net TRI Index', 'lat':-29.0, 'lon':24.0},
         ]
 
         # DBA Only can run initial building function
@@ -637,8 +661,9 @@ class PostgresCore():
 
         try:
             # Clear Table
-            self.delete_item(table='info_world_index')
-            self.insert_items(table='info_world_index', columns=['ticker', 'nation', 'index_name'], data=WORLD_INDEX_TICKERS)
+            self.delete_item(table='price_world_index', condition='ALL')
+            self.delete_item(table='info_world_index', condition='ALL')
+            self.insert_items(table='info_world_index', columns=['ticker', 'nation', 'index_name', 'lat', 'lon'], data=WORLD_INDEX_TICKERS)
 
         except Exception as err_msg:
             print(f"[ERROR] build_info_world_index Error: {err_msg}")
@@ -665,7 +690,7 @@ class PostgresCore():
             self.delete_item(table='price_world_index')
 
             # Get information of world indices
-            raw_data = self.get_all_data(table='info_world_index')
+            raw_data = self.find_item(table='info_world_index', columns='ALL')
 
             # Parsing
             world_indices = list()
@@ -678,7 +703,7 @@ class PostgresCore():
 
             # Collect data of prices of indices
             for world_index in world_indices:
-                prices = api.get_world_index_ohlcv_by_date(ticker=world_index['ticker'], startDt='20220101', endDt=dm.YESTERDAY)
+                prices = api.get_world_index_ohlcv_by_date(ticker=world_index['ticker'], startDt='20000101', endDt=dm.YESTERDAY)
 
                 self.insert_items(table='price_world_index', columns=['ticker', 'base_date', 'market_price', 'close_price', 'adj_close_price', 'high_price', 'low_price', 'fluctuation', 'fluctuation_rate', 'volume'], data=prices)
 

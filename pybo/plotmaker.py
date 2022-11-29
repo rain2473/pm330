@@ -187,9 +187,9 @@ def mapbox_maker():
     trace1 = {
     "ticker" : ["^KS11","^N225","399001.SZ","000001.SS","^HSI","^TWII","^GSPC","^DJI","^IXIC","^VIX","\^FTSE","^STOXX50E","^N100","^GDAXI","^FCHI"],
     "nation" : ["한국","일본","중국","중국","대만","대만","미국","미국","미국","미국","영국", "유럽", "프랑스","독일","프랑스"],
-    "index_name": ["KOSPI", "NIKKEI",  "SHENZHEN", "SSE", "HANGSENG", "TSEC", "S&P500", "DOW JONES", "NASDAQ", "VIX","FTSE 100", "ESTX 50", "EURONEXT", "DAX", "CAC 40"], 
-    "lat": [37.5, 36.4, 37.1, 29.1, 22.1, 24.4, 39.1, 38.7,  42.5, 44.1,53.5, 41.9, 46.4, 52.8, 48.2], 
-    "lon": [128.00, 138.24,116.5, 119.2, 120.1, 121.3, -118.3, -94.2, -74.1, -84.2,-2.1, 13.5, 2.1, 10.45, 4.3], 
+    "index_name": ["KOSPI", "NIKKEI",  "SHENZHEN", "SSE", "HANGSENG", "TSEC", "S&P500", "DOW JONES", "NASDAQ", "VIX", "FTSE 100", "ESTX 50", "EURONEXT", "DAX", "CAC 40"], 
+    "lat":        [ 37.5,    36.4,      37.1,       29.1,  22.1,       24.4,   39.1,     38.7,        42.5,     44.1,  53.5,       41.9,      46.4,       52.8,  48.2], 
+    "lon":        [ 128.00,  138.24,    116.5,      119.2, 120.1,      121.3,  -118.3,   -94.2,       -74.1,    -84.2, -2.1,       13.5,      2.1,        10.45, 4.3], 
     "color": ["#810023", "#0D0863", "#1C7600", "#3BF400", "#E9C200", "#E2E200", "#B9005E", "#630497", "#920092", "#B88CDB", "#431F01","#ff0000","#B3A000", "#006B6B","#B4D900"],
     "textposition": ["top center", "bottom center", "middle left", "middle left", "bottom center", "middle right", "top right", "bottom center", "bottom right", 
                     "top center","top left", "bottom center", "middle left", "middle right", "middle right"]

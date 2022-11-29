@@ -5,20 +5,18 @@
 
 
 # # Required Modules
-# import csv
-# import requests
-# import pandas as pd
+# import tokenization_kbalbert as tk
 
-# from bs4                   import BeautifulSoup
-# from .                     import tokenization_kbalbert as tk
 # from transformers          import AlbertForSequenceClassification
 # from transformers          import pipeline
 
+
+
 # # 토크나이저 설정
-# tokenizer = tk.KbAlbertCharTokenizer.from_pretrained('news_albert')
+# tokenizer = tk.KbAlbertCharTokenizer.from_pretrained('lww7438/news_albert', use_auth_token=True)
 
 # # 모델 설정
-# model = AlbertForSequenceClassification.from_pretrained('news_albert')
+# model = AlbertForSequenceClassification.from_pretrained('lww7438/news_albert', use_auth_token=True)
 
 # # 뉴스 분류 파이프라인 설정
 # news_classifier = pipeline(

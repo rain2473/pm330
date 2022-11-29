@@ -1,4 +1,3 @@
-
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
 # Date    : 2022-11-04(금)
@@ -21,6 +20,7 @@ TYPE_info_stock = {
 
 # Columns of Table: info_financial
 TYPE_info_financial = {
+    'base_date' : 'date',
     'isin_code' : 'varchar',
     'bps'       : 'integer',
     'per'       : 'double precision',
@@ -98,6 +98,8 @@ TYPE_info_world_index = {
     'ticker'     : 'varchar',
     'nation'     : 'varchar',
     'index_name' : 'varchar',
+    'lat'        : 'double precision',
+    'lon'        : 'double precision',
 }
 
 # Columns of Table: price_world_index

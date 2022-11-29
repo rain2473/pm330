@@ -1,16 +1,13 @@
-
 # Author  : 이병헌
 # Contact : lww7438@gmail.com
-# Date    : 2022-11-04(금)
+# Date    : 2022-11-29(화)
 
 
 
 # Required Modules
 from . import postgres_core    as core
-from . import conn_config      as config
 from . import data_manipulator as dm
 from . import schema
-# from . import set_news         as news    # Works only on Windows Environment
 
 
 
@@ -251,7 +248,7 @@ class PostgresHandler(core.PostgresCore):
         except Exception as err_msg:
             print(f"[ERROR] set_news Error: {err_msg}")
 
-    def  set_multiple_news(self, news_list:list):
+    def set_multiple_news(self, news_list:list):
         """
         새로운 다수의 뉴스 기사를 데이터베이스에 저장한다.
         해당 종목(short_isin_code)에 연관된 뉴스 기사가 50개를 초과할 경우,

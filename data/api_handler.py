@@ -1,4 +1,3 @@
-
 # Author      : 이병헌
 # Contact     : lww7438@gmail.com
 # Date        : 2022-11-05(토)
@@ -54,8 +53,8 @@ URL_ISSUCO_CUSTNO_BY_SHORT_ISIN = "http://api.seibro.or.kr/openapi/service/CorpS
 
 # * * *   The number of Maximum Items in Korea Stock Exchange (KOSPI/KOSDAQ/KONEX)   * * *
 # http://data.krx.co.kr/contents/MDC/MAIN/main/index.cmd
-KOSPI_ITEMS   = 941
-KOSDAQ_ITEMS  = 1603
+KOSPI_ITEMS   = 942
+KOSDAQ_ITEMS  = 1610
 KONEX_ITEMS   = 126
 ALL_STOCKS_KR = KOSPI_ITEMS + KOSDAQ_ITEMS + KONEX_ITEMS
 
@@ -220,7 +219,7 @@ def get_stoc_issu_stat(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, result
 
     return item
 
-def get_krx_listed_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resultType="json", basDt=dm.YESTERDAY, beginBasDt="", endBasDt="", likeBasDt="", likeSrtnCd="", isinCd="", likeIsinCd="", itmsNm="", likeItmsNm="", crno="", corpNm="", likeCorpNm=""):
+def get_krx_listed_info(serviceKey:str, pageNo=1, numOfRows=ALL_STOCKS_KR, resultType="json", basDt="", beginBasDt="", endBasDt="", likeBasDt="", likeSrtnCd="", isinCd="", likeIsinCd="", itmsNm="", likeItmsNm="", crno="", corpNm="", likeCorpNm=""):
     """
     금융위원회_KRX상장종목정보 검색 결과를 반환한다.
     * 금융위원회_KRX상장종목정보 (https://www.data.go.kr/data/15094775/openapi.do)
@@ -899,7 +898,8 @@ def get_market_ohlcv_by_date(short_isin_code:str, start_date:str='20000101', end
     """
 
     try:
-        response = stock.get_market_ohlcv_by_date(fromdate=start_date, todate=end_date, ticker=short_isin_code, adjusted=False, name_display=False).to_dict(orient='index')
+        initial_date = datetime.strftime(datetime.strptime(start_date, "%Y%m%d") - timedelta(1)  , "%Y%m%d")
+        response = stock.get_market_ohlcv_by_date(fromdate=initial_date, todate=end_date, ticker=short_isin_code, adjusted=False, name_display=False).to_dict(orient='index')
         
         output = list()
 
@@ -918,16 +918,13 @@ def get_market_ohlcv_by_date(short_isin_code:str, start_date:str='20000101', end
             output.append(row)
 
         # Calculation fluctuation
-        initial_date = datetime.strftime(datetime.strptime(start_date, "%Y%m%d") - timedelta(1)  , "%Y%m%d")
-        initial_close_price = stock.get_market_ohlcv_by_date(fromdate=initial_date, todate=initial_date, ticker=short_isin_code, adjusted=False, name_display=False).to_dict(orient='records')[0]['종가']
-
         for idx in range(0, len(output)):
-            if idx == 0:
-                output[idx]['fluctuation'] = output[idx]['close_price'] - initial_close_price
-            else:
+            if idx > 0:
                 output[idx]['fluctuation'] = output[idx]['close_price'] - output[idx-1]['close_price']
-    
-        return output
+            else:
+                output[idx]['fluctuation'] = None
+
+        return output[1:]
 
     except Exception as err_msg:
         print(f"[ERROR] get_market_ohlcv_by_date Error: {err_msg}")
@@ -953,6 +950,7 @@ def get_world_index_ohlcv_by_date(ticker:str, startDt:str="20000101", endDt:str=
     
     try:
         prices = pdr.DataReader(ticker, 'yahoo', startDt_datetime, endDt_datetime).sort_index()
+        
         prices['fluctuation'] = prices['Close'] - prices['Close'].shift(+1)
         prices['fluctuation'].fillna(0, inplace=True)
         prices['fluctuation_rate'] = prices['Close'].pct_change()
@@ -983,14 +981,12 @@ def get_world_index_ohlcv_by_date(ticker:str, startDt:str="20000101", endDt:str=
         print(f"[ERROR] get_world_index Error: {err_msg}")
         return None
 
-def get_financials_by_date(short_isin_code:str, start_date:str='20000101', end_date:str=dm.YESTERDAY):
+def get_financials_by_date(short_isin_code:str):
     """
     PyKrx 종목별 DIV/BPS/PER/EPS 조회: 해당 종목의 재무제표 데이터를 조회한다.
         
     [Parameters]
     short_isin_code (str) : 국제 증권 식별 번호 (단축형, 6자리)
-    start_date      (str) : 조회 시작 일자 (yyyymmdd) (default:20000101)
-    end_date        (str) : 조회 종료 일자 (yyyymmdd) (default:YESTERDAT (전일))
 
     [Returns]
     list : 재무제표 데이터 (list of dict)
@@ -1007,7 +1003,7 @@ def get_financials_by_date(short_isin_code:str, start_date:str='20000101', end_d
     """
 
     try:
-        response = stock.get_market_fundamental_by_date(fromdate=start_date, todate=end_date, ticker=short_isin_code, name_display=True).to_dict(orient='index')
+        response = stock.get_market_fundamental_by_date(fromdate=dm.YESTERDAY, todate=dm.YESTERDAY, ticker=short_isin_code, name_display=True).to_dict(orient='index')
 
         output = list()
 
@@ -1015,7 +1011,7 @@ def get_financials_by_date(short_isin_code:str, start_date:str='20000101', end_d
             row = dict()
 
             # Column Renaming
-            row['base_date'] = base_date.strftime('%Y%m%d')
+            row['base_date'] = dm.YESTERDAY
             row['short_isin_code'] = short_isin_code
             row['bps'] = financials.pop('BPS', None)
             row['per'] = financials.pop('PER', None)
