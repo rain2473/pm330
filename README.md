@@ -36,7 +36,7 @@
 |   **Django**   | 프론트엔드 및 백엔드 구성 |
 | **PostgreSQL** |        데이터베이스       |
 |  **KB ALBERT** |    자연어 감성분석 모델   |
-|   **AWS RDS**  |      클라우드 컴퓨팅      |
+|   **AWS RDS**  |      데이터베이스       |
 |   **Heroku**   |         웹 호스팅         |
 | **Git/GitHub** |         버전 관리         |
 <br />
